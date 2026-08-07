@@ -22,7 +22,7 @@ const adminNavItems = [
   },
   {
     title: "Documents",
-    href: "/admin/dashboard/documents",
+    href: "/admin/docs",
     icon: FileText,
   },
   {

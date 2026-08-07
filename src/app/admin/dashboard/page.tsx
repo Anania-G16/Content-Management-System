@@ -61,7 +61,7 @@ export default function AdminDashboardPage() {
         </div>
 
         <Link
-          href="/admin/dashboard/documents/create"
+          href="/admin/docs/new"
           className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-primary text-text text-sm font-medium hover:bg-primary-active transition-colors self-start sm:self-auto"
         >
           <Plus size={16} />
