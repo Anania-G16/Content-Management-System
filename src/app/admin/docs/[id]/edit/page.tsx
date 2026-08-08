@@ -169,6 +169,7 @@ const [editorContent, setEditorContent] = useState<object | null>(
             nodes={dummyDocumentationTree}
             selectedId={parentId}
             onSelect={setParentId}
+            currentDocumentId={existingDoc.id}
           />
         </div>
 
