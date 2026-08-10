@@ -1,5 +1,12 @@
 import Link from "next/link";
-import { Plus, FileText, CheckCircle2, FileEdit, Edit, Eye } from "lucide-react";
+import {
+  Plus,
+  FileText,
+  CheckCircle2,
+  FileEdit,
+  Edit,
+  Eye,
+} from "lucide-react";
 
 const stats = [
   {
@@ -62,7 +69,7 @@ export default function AdminDashboardPage() {
 
         <Link
           href="/admin/docs/new"
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-primary text-text text-sm font-medium hover:bg-primary-active transition-colors self-start sm:self-auto"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-text text-sm font-medium hover:bg-primary-active transition-colors self-start sm:self-auto"
         >
           <Plus size={16} />
           <span>New Document</span>
@@ -86,7 +93,9 @@ export default function AdminDashboardPage() {
                   {stat.value}
                 </span>
               </div>
-              <div className={`p-3 rounded-md bg-background border border-border ${stat.color}`}>
+              <div
+                className={`p-3 rounded-md bg-background border border-border ${stat.color}`}
+              >
                 <Icon size={20} />
               </div>
             </div>
@@ -111,12 +120,17 @@ export default function AdminDashboardPage() {
                   <th className="px-4 py-3 font-semibold">Title</th>
                   <th className="px-4 py-3 font-semibold">Status</th>
                   <th className="px-4 py-3 font-semibold">Last Updated</th>
-                  <th className="px-4 py-3 font-semibold text-right">Actions</th>
+                  <th className="px-4 py-3 font-semibold text-right">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {documents.map((doc) => (
-                  <tr key={doc.id} className="hover:bg-background/50 transition-colors">
+                  <tr
+                    key={doc.id}
+                    className="hover:bg-background/50 transition-colors"
+                  >
                     {/* Title & URL */}
                     <td className="px-4 py-3">
                       <div className="font-medium text-text">{doc.title}</div>

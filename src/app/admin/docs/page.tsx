@@ -11,13 +11,18 @@ import {
 
 export default function AdminDocsPage() {
   const [documents, setDocuments] = useState<DocumentationNode[]>(
-    dummyDocumentationTree
+    dummyDocumentationTree,
   );
   const [searchQuery, setSearchQuery] = useState("");
-  const [nodeToDelete, setNodeToDelete] = useState<DocumentationNode | null>(null);
+  const [nodeToDelete, setNodeToDelete] = useState<DocumentationNode | null>(
+    null,
+  );
 
   // Helper to check if search returns any visible nodes
-  const hasSearchResults = (nodes: DocumentationNode[], query: string): boolean => {
+  const hasSearchResults = (
+    nodes: DocumentationNode[],
+    query: string,
+  ): boolean => {
     if (!query) return nodes.length > 0;
     return nodes.some(function check(node): boolean {
       if (node.title.toLowerCase().includes(query.toLowerCase())) return true;
@@ -26,7 +31,8 @@ export default function AdminDocsPage() {
   };
 
   const isTreeEmpty = documents.length === 0;
-  const isSearchEmpty = !isTreeEmpty && !hasSearchResults(documents, searchQuery);
+  const isSearchEmpty =
+    !isTreeEmpty && !hasSearchResults(documents, searchQuery);
 
   const confirmDelete = () => {
     if (!nodeToDelete) return;
@@ -50,7 +56,9 @@ export default function AdminDocsPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-text">Documentation</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-text">
+            Documentation
+          </h1>
           <p className="text-sm text-text-secondary mt-1">
             Manage and organize your documentation structure.
           </p>
@@ -58,7 +66,7 @@ export default function AdminDocsPage() {
 
         <Link
           href="/admin/docs/new"
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-primary text-text text-sm font-medium hover:bg-primary-active transition-colors self-start sm:self-auto"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-text text-sm font-medium hover:bg-primary-active transition-colors self-start sm:self-auto"
         >
           <Plus size={16} />
           <span>New Document</span>
@@ -68,7 +76,10 @@ export default function AdminDocsPage() {
       {/* Search Bar */}
       {!isTreeEmpty && (
         <div className="relative max-w-md">
-          <Search size={15} className="absolute left-3 top-3 text-text-secondary" />
+          <Search
+            size={15}
+            className="absolute left-3 top-3 text-text-secondary"
+          />
           <input
             type="text"
             placeholder="Search documentation..."
@@ -92,7 +103,8 @@ export default function AdminDocsPage() {
       {isSearchEmpty && (
         <div className="p-8 text-center rounded-md bg-surface border border-border space-y-3">
           <p className="text-sm text-text-secondary">
-            No documentation matching <span className="text-text font-medium">"{searchQuery}"</span>.
+            No documentation matching{" "}
+            <span className="text-text font-medium">"{searchQuery}"</span>.
           </p>
           <button
             type="button"
@@ -111,9 +123,12 @@ export default function AdminDocsPage() {
             <FileText size={28} />
           </div>
           <div className="space-y-1">
-            <h3 className="text-lg font-semibold text-text">No documentation yet</h3>
+            <h3 className="text-lg font-semibold text-text">
+              No documentation yet
+            </h3>
             <p className="text-sm text-text-secondary max-w-sm mx-auto">
-              Create your first document to start building your documentation tree.
+              Create your first document to start building your documentation
+              tree.
             </p>
           </div>
           <Link
@@ -146,10 +161,14 @@ export default function AdminDocsPage() {
 
             <p className="text-sm text-text-secondary leading-relaxed">
               Are you sure you want to delete{" "}
-              <span className="font-semibold text-text">"{nodeToDelete.title}"</span>?
+              <span className="font-semibold text-text">
+                "{nodeToDelete.title}"
+              </span>
+              ?
               {nodeToDelete.children && nodeToDelete.children.length > 0 && (
                 <span className="block mt-1 text-danger">
-                  Warning: This will also remove all nested child documents under it.
+                  Warning: This will also remove all nested child documents
+                  under it.
                 </span>
               )}
             </p>

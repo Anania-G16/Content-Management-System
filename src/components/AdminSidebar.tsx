@@ -55,23 +55,23 @@ export default function AdminSidebar() {
         />
       )}
 
-      {/* Sidebar Container */}
+      {/* Sidebar Container - FIXED: Changed bg-background to bg-surface */}
       <aside
-        className={`fixed top-0 left-0 z-40 h-screen w-64 bg-background border-r border-border flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
+        className={`fixed top-0 left-0 z-40 h-screen w-64 bg-surface border-r border-border flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* Header / Logo */}
-        <div className="h-16 flex items-center justify-between px-6 border-b border-border">
+        <div className="h-16 flex items-center justify-between px-6 border-b border-border shrink-0">
           <div className="flex items-center gap-3">
-            <div className="p-1.5 rounded-md bg-primary/10 text-primary">
+            <div className="p-1.5 rounded-md bg-accent/30 text-text">
               <ShieldCheck size={20} />
             </div>
             <span className="font-semibold text-lg text-text tracking-wide">
               CMS Admin
             </span>
           </div>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-surface border border-border text-accent">
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-background border border-border text-text-secondary">
             v1.0
           </span>
         </div>
@@ -94,8 +94,8 @@ export default function AdminSidebar() {
                       onClick={() => setIsOpen(false)}
                       className={`group flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                         isActive
-                          ? "bg-primary-active text-primary-text"
-                          : "text-text-secondary hover:bg-surface hover:text-text"
+                          ? "bg-accent/40 text-text font-semibold border border-border/50"
+                          : "text-text-secondary hover:bg-accent/20 hover:text-text"
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -105,7 +105,7 @@ export default function AdminSidebar() {
                       {isActive && (
                         <ChevronRight
                           size={14}
-                          className="text-primary-text"
+                          className="text-text-secondary"
                         />
                       )}
                     </Link>
@@ -117,7 +117,7 @@ export default function AdminSidebar() {
         </nav>
 
         {/* Footer / Logout Button */}
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border shrink-0">
           <button
             onClick={() => {
               setIsOpen(false);
