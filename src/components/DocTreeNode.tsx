@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronRight, ChevronDown } from "lucide-react";
 import { DocumentationNode } from "@/data/documentationData";
+import { getDocIcon } from "@/lib/iconMap";
 
 interface DocTreeNodeProps {
   node: DocumentationNode;
@@ -41,24 +42,31 @@ export default function DocTreeNode({
     }
   };
 
+  // Check if it's a root document (depth is 0 or parentId is null)
+  const isRootNode = depth === 0 || node.parentId === null;
+  const RootIconComponent = isRootNode ? getDocIcon(node.icon) : null;
+
   return (
     <li className="list-none">
       <div
         onClick={toggleExpand}
         className={`group flex items-center justify-between rounded-md text-sm font-medium transition-colors cursor-pointer ${
           isActive
-            ? "bg-primary-active text-primary-text font-semibold"
-            : "text-text-secondary hover:bg-surface hover:text-text"
+            ? "bg-white/[0.05] border border-white/[0.08] text-text backdrop-blur-sm shadow-sm"
+            : "text-text-secondary hover:bg-white/[0.03] hover:text-text border border-transparent"
         }`}
         style={{ paddingLeft: `${Math.max(0.5, depth * 0.75 + 0.5)}rem` }}
       >
-        {/* Document Title Link */}
+        {/* Document Title Link & Root Icon */}
         <Link
           href={currentPath}
           onClick={onNavigate}
-          className="flex-1 py-1.5 pr-2 truncate"
+          className="flex-1 py-1.5 pr-2 truncate flex items-center gap-2"
         >
-          {node.title}
+          {RootIconComponent && (
+            <RootIconComponent size={16} className="shrink-0 text-text-secondary group-hover:text-text transition-colors" />
+          )}
+          <span className="truncate">{node.title}</span>
         </Link>
 
         {/* Expand / Collapse Chevron Indicator */}
@@ -75,7 +83,7 @@ export default function DocTreeNode({
 
       {/* Recursive Children List */}
       {hasChildren && isExpanded && (
-        <ul className="mt-0.5 space-y-0.5 border-l border-border/50 ml-3">
+        <ul className="mt-0.5 space-y-0.5 border-l border-white/[0.06] ml-3">
           {node.children!.map((child) => (
             <DocTreeNode
               key={child.id}
