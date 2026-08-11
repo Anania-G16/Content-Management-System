@@ -52,8 +52,8 @@ export default function DocTreeNode({
         onClick={toggleExpand}
         className={`group flex items-center justify-between rounded-md text-sm font-medium transition-colors cursor-pointer ${
           isActive
-            ? "bg-white/[0.05] border border-white/[0.08] text-text backdrop-blur-sm shadow-sm"
-            : "text-text-secondary hover:bg-white/[0.03] hover:text-text border border-transparent"
+            ? "bg-white/5 border border-white/8 text-text backdrop-blur-sm shadow-sm"
+            : "text-text-secondary hover:bg-white/3 hover:text-text border border-transparent"
         }`}
         style={{ paddingLeft: `${Math.max(0.5, depth * 0.75 + 0.5)}rem` }}
       >
@@ -83,7 +83,7 @@ export default function DocTreeNode({
 
       {/* Recursive Children List */}
       {hasChildren && isExpanded && (
-        <ul className="mt-0.5 space-y-0.5 border-l border-white/[0.06] ml-3">
+        <ul className="mt-0.5 space-y-0.5 border-l border-white/6 ml-3">
           {node.children!.map((child) => (
             <DocTreeNode
               key={child.id}
