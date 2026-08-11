@@ -58,7 +58,7 @@ export default function UsersPage() {
       );
     }
     return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/[0.05] text-text-secondary border border-white/[0.08]">
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-white/5 text-text-secondary border border-white/8">
         <UserIcon size={12} />
         User
       </span>
@@ -68,7 +68,7 @@ export default function UsersPage() {
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
       {/* Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-white/[0.08]">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-white/8">
         <div>
           <h1 className="text-2xl font-bold text-text tracking-tight">
             User Management
@@ -98,36 +98,36 @@ export default function UsersPage() {
             placeholder="Search users by name or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 rounded-lg bg-[#1a1a1a] border border-white/[0.08] text-sm text-text placeholder:text-text-secondary/60 focus:outline-none focus:border-white/20 transition-colors"
+            className="w-full pl-9 pr-4 py-2 rounded-lg bg-[#1a1a1a] border border-white/8 text-sm text-text placeholder:text-text-secondary/60 focus:outline-none focus:border-white/20 transition-colors"
           />
         </div>
       </div>
 
       {/* Users Table */}
-      <div className="rounded-xl border border-white/[0.08] bg-[#1a1a1a] overflow-hidden">
+      <div className="rounded-xl border border-white/8 bg-[#1a1a1a] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-sm">
             <thead>
-              <tr className="border-b border-white/[0.08] bg-white/[0.02] text-text-secondary text-xs font-semibold uppercase tracking-wider">
+              <tr className="border-b border-white/8 bg-white/2 text-text-secondary text-xs font-semibold uppercase tracking-wider">
                 <th className="py-3.5 px-4">User</th>
                 <th className="py-3.5 px-4">Role</th>
                 <th className="py-3.5 px-4">Joined</th>
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.06]">
+            <tbody className="divide-y divide-white/6">
               {filteredUsers.length > 0 ? (
                 filteredUsers.map((user) => (
                   <tr
                     key={user.id}
                     className={`transition-colors group ${
-                      user.isDeactivated ? "opacity-60 bg-white/[0.01]" : "hover:bg-white/[0.02]"
+                      user.isDeactivated ? "opacity-60 bg-white/1" : "hover:bg-white/2"
                     }`}
                   >
                     {/* User Name & Email */}
                     <td className="py-3.5 px-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-white/[0.08] border border-white/[0.1] flex items-center justify-center text-text font-medium text-xs">
+                        <div className="w-9 h-9 rounded-full bg-white/8 border border-white/1 flex items-center justify-center text-text font-medium text-xs">
                           {user.name
                             .split(" ")
                             .map((n) => n[0])
@@ -165,7 +165,7 @@ export default function UsersPage() {
                     <td className="py-3.5 px-4 text-right relative">
                       <button
                         onClick={() => toggleMenu(user.id)}
-                        className="p-1.5 rounded-lg text-text-secondary hover:text-text hover:bg-white/[0.06] transition-colors"
+                        className="p-1.5 rounded-lg text-text-secondary hover:text-text hover:bg-white/6 transition-colors"
                         aria-label="Actions"
                       >
                         <MoreVertical size={16} />
@@ -178,7 +178,7 @@ export default function UsersPage() {
                             className="fixed inset-0 z-10"
                             onClick={() => setActiveMenuId(null)}
                           />
-                          <div className="absolute right-4 top-12 z-20 w-48 rounded-lg bg-[#222222] border border-white/[0.1] shadow-xl py-1 text-left">
+                          <div className="absolute right-4 top-12 z-20 w-48 rounded-lg bg-[#222222] border border-white/1 shadow-xl py-1 text-left">
                             {/* Deactivate / Reactivate Option */}
                             <button
                               onClick={() => handleToggleDeactivate(user.id)}
@@ -197,7 +197,7 @@ export default function UsersPage() {
                               )}
                             </button>
 
-                            <div className="my-1 border-t border-white/[0.08]" />
+                            <div className="my-1 border-t border-white/8" />
 
                             {/* Delete Option */}
                             <button
@@ -234,7 +234,7 @@ export default function UsersPage() {
       {/* Delete Confirmation Modal */}
       {userToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-[#1a1a1a] border border-white/[0.1] rounded-xl p-6 shadow-2xl space-y-4">
+          <div className="w-full max-w-md bg-[#1a1a1a] border border-white/1 rounded-xl p-6 shadow-2xl space-y-4">
             <div className="flex items-center gap-3 text-rose-400">
               <div className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/20">
                 <AlertTriangle size={20} />
@@ -251,7 +251,7 @@ export default function UsersPage() {
             <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 onClick={() => setUserToDelete(null)}
-                className="px-4 py-2 rounded-lg bg-white/[0.05] border border-white/[0.08] text-sm text-text hover:bg-white/[0.08] transition-colors"
+                className="px-4 py-2 rounded-lg bg-white/5 border border-white/8 text-sm text-text hover:bg-white/8 transition-colors"
               >
                 Cancel
               </button>
