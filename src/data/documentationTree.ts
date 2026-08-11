@@ -3,6 +3,7 @@ export type DocumentationNode = {
   title: string;
   slug: string;
   parentId: string | null;
+  icon?: string | null;
   content?: object;
   children?: DocumentationNode[];
 };
@@ -13,6 +14,7 @@ export const dummyDocumentationTree: DocumentationNode[] = [
     title: "Getting Started",
     slug: "getting-started",
     parentId: null,
+    icon: "Rocket",
     content: {
       type: "doc",
       content: [
@@ -437,6 +439,7 @@ export const dummyDocumentationTree: DocumentationNode[] = [
     title: "API Reference",
     slug: "api-reference",
     parentId: null,
+    icon: "Code2",
     content: {
       type: "doc",
       content: [

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, AlertCircle, FileText, CheckCircle2 } from "lucide-react";
 import DocumentEditor from "@/components/DocumentEditor";
 import ParentDocumentSelector from "@/components/ParentDocumentSelector";
+import IconSelector from "@/components/IconSelector";
 import {
   dummyDocumentationTree,
   DocumentationNode,
@@ -52,9 +53,13 @@ export default function EditDocumentPage({
   const [parentId, setParentId] = useState<string | null>(
     existingDoc?.parentId || null,
   );
-const [editorContent, setEditorContent] = useState<object | null>(
-  existingDoc?.content || null,
-);  const [error, setError] = useState("");
+  const [icon, setIcon] = useState<string | null>(
+    existingDoc?.icon || "BookOpen"
+  );
+  const [editorContent, setEditorContent] = useState<object | null>(
+    existingDoc?.content || null,
+  );
+  const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
   if (!existingDoc) {
@@ -82,6 +87,16 @@ const [editorContent, setEditorContent] = useState<object | null>(
 
   const generatedSlug = generateSlug(title);
 
+  // Handle Parent Changes
+  const handleParentChange = (newParentId: string | null) => {
+    setParentId(newParentId);
+    if (newParentId !== null) {
+      setIcon(null);
+    } else {
+      setIcon(existingDoc.icon || "BookOpen");
+    }
+  };
+
   const handleSave = () => {
     if (!title.trim()) {
       setError("Document title is required.");
@@ -95,6 +110,7 @@ const [editorContent, setEditorContent] = useState<object | null>(
       title: title.trim(),
       slug: generatedSlug,
       parentId,
+      icon: parentId === null ? icon : null,
       content: editorContent,
     };
 
@@ -168,10 +184,20 @@ const [editorContent, setEditorContent] = useState<object | null>(
           <ParentDocumentSelector
             nodes={dummyDocumentationTree}
             selectedId={parentId}
-            onSelect={setParentId}
+            onSelect={handleParentChange}
             currentDocumentId={existingDoc.id}
           />
         </div>
+
+        {/* Conditional Icon Selector for Root Documents */}
+        {parentId === null && (
+          <div className="space-y-2">
+            <label className="block text-xs font-semibold text-text uppercase tracking-wider">
+              Root Icon
+            </label>
+            <IconSelector selectedIcon={icon} onSelect={setIcon} />
+          </div>
+        )}
 
         {/* Content Editor */}
         <div className="space-y-2">
@@ -179,7 +205,9 @@ const [editorContent, setEditorContent] = useState<object | null>(
             Document Content
           </label>
           <DocumentEditor
-          initialContent={existingDoc.content} onChange={(json) => setEditorContent(json)} />
+            initialContent={existingDoc.content}
+            onChange={(json) => setEditorContent(json)}
+          />
         </div>
       </div>
 

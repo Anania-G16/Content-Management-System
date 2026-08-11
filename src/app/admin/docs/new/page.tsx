@@ -8,6 +8,7 @@ import ParentDocumentSelector, {
   findNodePath,
 } from "@/components/ParentDocumentSelector";
 import DocumentEditor from "@/components/DocumentEditor";
+import IconSelector from "@/components/IconSelector";
 import {
   dummyDocumentationTree,
   DocumentationNode,
@@ -19,12 +20,23 @@ export default function NewDocumentPage() {
   // Form State
   const [title, setTitle] = useState("");
   const [parentId, setParentId] = useState<string | null>(null);
+  const [icon, setIcon] = useState<string | null>("BookOpen");
   const [contentJson, setContentJson] = useState<object | null>(null);
 
   // Errors & Status
   const [titleError, setTitleError] = useState("");
   const [contentError, setContentError] = useState("");
   const [submittedPayload, setSubmittedPayload] = useState<object | null>(null);
+
+  // Parent selection handler with icon state logic
+  const handleParentSelect = (newParentId: string | null) => {
+    setParentId(newParentId);
+    if (newParentId !== null) {
+      setIcon(null);
+    } else if (icon === null) {
+      setIcon("BookOpen");
+    }
+  };
 
   // Slug auto-generation helper
   const generatedSlug = title
@@ -61,6 +73,7 @@ export default function NewDocumentPage() {
       title: title.trim(),
       slug: generatedSlug,
       parentId: parentId,
+      icon: parentId === null ? icon : null,
       content: contentJson,
     };
 
@@ -132,12 +145,22 @@ export default function NewDocumentPage() {
           <ParentDocumentSelector
             nodes={dummyDocumentationTree}
             selectedId={parentId}
-            onSelect={setParentId}
+            onSelect={handleParentSelect}
           />
           <p className="text-xs text-text-secondary">
             Select "None — Root Document" to create a top-level section.
           </p>
         </div>
+
+        {/* Conditional Icon Selector for Root Documents */}
+        {parentId === null && (
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-text">
+              Root Icon
+            </label>
+            <IconSelector selectedIcon={icon} onSelect={setIcon} />
+          </div>
+        )}
 
         {/* Rich-Text Content Editor */}
         <div className="space-y-2">
