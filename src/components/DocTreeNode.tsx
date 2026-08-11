@@ -82,18 +82,26 @@ export default function DocTreeNode({
       </div>
 
       {/* Recursive Children List */}
-      {hasChildren && isExpanded && (
-        <ul className="mt-0.5 space-y-0.5 border-l border-white/6 ml-3">
-          {node.children!.map((child) => (
-            <DocTreeNode
-              key={child.id}
-              node={child}
-              parentPath={currentPath}
-              depth={depth + 1}
-              onNavigate={onNavigate}
-            />
-          ))}
-        </ul>
+      {hasChildren && (
+        <div
+          className={`grid transition-all duration-200 ease-out ${
+            isExpanded ? "grid-rows-[1fr] opacity-100 mt-0.5" : "grid-rows-[0fr] opacity-0 mt-0"
+          }`}
+        >
+          <div className="overflow-hidden">
+            <ul className="space-y-0.5 border-l border-white/6 ml-3">
+              {node.children!.map((child) => (
+                <DocTreeNode
+                  key={child.id}
+                  node={child}
+                  parentPath={currentPath}
+                  depth={depth + 1}
+                  onNavigate={onNavigate}
+                />
+              ))}
+            </ul>
+          </div>
+        </div>
       )}
     </li>
   );
