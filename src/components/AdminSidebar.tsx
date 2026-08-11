@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   FileText,
-  Settings,
+  Users,
   LogOut,
   ShieldCheck,
   Menu,
@@ -26,9 +26,9 @@ const adminNavItems = [
     icon: FileText,
   },
   {
-    title: "Settings",
-    href: "/admin/dashboard/settings",
-    icon: Settings,
+    title: "User Management",
+    href: "/admin/users",
+    icon: Users,
   },
 ];
 
@@ -55,7 +55,7 @@ export default function AdminSidebar() {
         />
       )}
 
-      {/* Sidebar Container - FIXED: Changed bg-background to bg-surface */}
+      {/* Sidebar Container */}
       <aside
         className={`fixed top-0 left-0 z-40 h-screen w-64 bg-surface border-r border-border flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
@@ -92,10 +92,10 @@ export default function AdminSidebar() {
                     <Link
                       href={item.href}
                       onClick={() => setIsOpen(false)}
-                      className={`group flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      className={`group flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium transition-colors border ${
                         isActive
-                          ? "bg-accent/40 text-text font-semibold border border-border/50"
-                          : "text-text-secondary hover:bg-accent/20 hover:text-text"
+                          ? "bg-accent/40 text-text font-semibold border-border/50"
+                          : "border-transparent text-text-secondary hover:bg-accent/20 hover:text-text"
                       }`}
                     >
                       <div className="flex items-center gap-3">
