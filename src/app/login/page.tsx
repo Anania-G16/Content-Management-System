@@ -3,24 +3,55 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Eye, EyeOff, Lock, Mail, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import api from "@/lib/api";
 
 interface LoginModalProps {
   isOpen?: boolean;
   onClose?: () => void;
 }
 
-export default function LoginModal({ isOpen = true, onClose }: LoginModalProps) {
+export default function LoginModal({
+  isOpen = true,
+  onClose,
+}: LoginModalProps) {
+  const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login submitted:", { email, password });
-  };
 
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const response = await api.post("/api/auth/login", {
+        email,
+        password,
+      });
+
+      console.log("Login successful:", response.data);
+      localStorage.setItem("accessToken", response.data.accessToken);
+      if (response.data.user.role === "ADMIN") {
+        router.push("/admin/dashboard");
+      } else {
+        router.push("/docs");
+      }
+    } catch (error) {
+      console.error("Login failed:", error);
+
+      setError("Invalid email or password.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Semi-transparent Blurred Backdrop */}
@@ -49,14 +80,16 @@ export default function LoginModal({ isOpen = true, onClose }: LoginModalProps) 
             Sign in to access restricted documentation
           </p>
         </div>
-
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <label className="block text-xs font-medium text-text">
               Email Address
             </label>
             <div className="relative flex items-center">
-              <Mail size={16} className="absolute left-3 text-text-secondary shrink-0" />
+              <Mail
+                size={16}
+                className="absolute left-3 text-text-secondary shrink-0"
+              />
               <input
                 type="email"
                 required
@@ -81,7 +114,10 @@ export default function LoginModal({ isOpen = true, onClose }: LoginModalProps) 
               </Link>
             </div>
             <div className="relative flex items-center">
-              <Lock size={16} className="absolute left-3 text-text-secondary shrink-0" />
+              <Lock
+                size={16}
+                className="absolute left-3 text-text-secondary shrink-0"
+              />
               <input
                 type={showPassword ? "text" : "password"}
                 required
@@ -112,7 +148,10 @@ export default function LoginModal({ isOpen = true, onClose }: LoginModalProps) 
         <div className="text-center pt-2 border-t border-border">
           <p className="text-xs text-text-secondary">
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-text font-medium hover:underline">
+            <Link
+              href="/register"
+              className="text-text font-medium hover:underline"
+            >
               Register
             </Link>
           </p>
