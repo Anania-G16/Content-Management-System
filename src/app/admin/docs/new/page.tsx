@@ -21,6 +21,7 @@ import {
   DocumentationNode,
 } from "@/data/documentationTree";
 import { dummyUsers } from "@/data/userData";
+import api from "@/lib/api";
 
 export default function NewDocumentPage() {
   const router = useRouter();
@@ -33,11 +34,13 @@ export default function NewDocumentPage() {
 
   // Access Control State
   const [accessType, setAccessType] = useState<
-    "PUBLIC" | "ALL_AUTHENTICATED" | "RESTRICTED"
-  >("ALL_AUTHENTICATED");
+    "PUBLIC" | "CLIENT" | "PRIVATE"
+  >("CLIENT");
   const [allowedUsers, setAllowedUsers] = useState<string[]>([]);
   const [userSearchQuery, setUserSearchQuery] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  // Submission Status Action State
 
   // Errors & Status
   const [titleError, setTitleError] = useState("");
@@ -87,38 +90,49 @@ export default function NewDocumentPage() {
     setAllowedUsers((prev) => prev.filter((id) => id !== userId));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (
+  e: React.FormEvent,
+  status: "DRAFT" | "PUBLISHED",
+) => {
+  e.preventDefault();
 
-    let isValid = true;
-    setTitleError("");
-    setContentError("");
+  let isValid = true;
+  setTitleError("");
+  setContentError("");
 
-    if (!title.trim()) {
-      setTitleError("Document title is required.");
-      isValid = false;
-    }
+  if (!title.trim()) {
+    setTitleError("Document title is required.");
+    isValid = false;
+  }
 
-    if (!contentJson || Object.keys(contentJson).length === 0) {
-      setContentError("Document content cannot be empty.");
-      isValid = false;
-    }
+  if (!contentJson || Object.keys(contentJson).length === 0) {
+    setContentError("Document content cannot be empty.");
+    isValid = false;
+  }
 
-    if (!isValid) return;
+  if (!isValid) return;
 
-    const payload = {
-      title: title.trim(),
-      slug: generatedSlug,
-      parentId: parentId,
-      icon: parentId === null ? icon : null,
-      content: contentJson,
-      accessType: accessType,
-      allowedUsers: accessType === "RESTRICTED" ? allowedUsers : [],
-    };
-
-    console.log("Created Document Payload:", payload);
-    setSubmittedPayload(payload);
+  const payload = {
+    title: title.trim(),
+    slug: generatedSlug,
+    icon: parentId === null ? icon : null,
+    content: contentJson,
+    parentId,
+    order: 1,
+    status,
+    accessLevel: accessType,
+    allowedUsers: accessType === "PRIVATE" ? allowedUsers : [],
   };
+
+  try {
+    const response = await api.post("/api/documents", payload);
+
+    console.log("Document created:", response.data);
+    setSubmittedPayload(response.data);
+  } catch (error) {
+    console.error("Failed to create document:", error);
+  }
+};
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 space-y-6">
@@ -159,7 +173,7 @@ export default function NewDocumentPage() {
       )}
 
       {/* Main Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form className="space-y-6">
         {/* Title Input */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-text">
@@ -231,8 +245,8 @@ export default function NewDocumentPage() {
                 type="radio"
                 name="accessType"
                 value="ALL_AUTHENTICATED"
-                checked={accessType === "ALL_AUTHENTICATED"}
-                onChange={() => setAccessType("ALL_AUTHENTICATED")}
+                checked={accessType === "CLIENT"}
+                onChange={() => setAccessType("CLIENT")}
                 className="accent-primary"
               />
               All authenticated users
@@ -243,8 +257,8 @@ export default function NewDocumentPage() {
                 type="radio"
                 name="accessType"
                 value="RESTRICTED"
-                checked={accessType === "RESTRICTED"}
-                onChange={() => setAccessType("RESTRICTED")}
+                checked={accessType === "PRIVATE"}
+                onChange={() => setAccessType("PRIVATE")}
                 className="accent-primary"
               />
               Specific users only
@@ -252,7 +266,7 @@ export default function NewDocumentPage() {
           </div>
 
           {/* Restricted User Dropdown & Selection */}
-          {accessType === "RESTRICTED" && (
+          {accessType === "PRIVATE" && (
             <div className="space-y-3 pt-2">
               <label className="block text-xs font-medium text-text-secondary">
                 Allowed Users
@@ -377,10 +391,18 @@ export default function NewDocumentPage() {
             Cancel
           </button>
           <button
-            type="submit"
+            type="button"
+            onClick={(e) => handleSubmit(e, "DRAFT")}
+            className="px-4 py-2 text-sm font-medium rounded-md border border-border text-text hover:bg-surface transition-colors shadow-sm"
+          >
+            Save as Draft
+          </button>
+          <button
+            type="button"
+            onClick={(e) => handleSubmit(e, "PUBLISHED")}
             className="px-4 py-2 text-sm font-medium rounded-md bg-primary text-text hover:bg-primary-active transition-colors shadow-sm"
           >
-            Create Document
+            Publish
           </button>
         </div>
       </form>

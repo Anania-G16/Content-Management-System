@@ -8,6 +8,7 @@ import {
   dummyDocumentationTree,
   DocumentationNode,
 } from "@/data/documentationTree";
+import api from "@/lib/api";
 
 export default function AdminDocsPage() {
   const [documents, setDocuments] = useState<DocumentationNode[]>(
