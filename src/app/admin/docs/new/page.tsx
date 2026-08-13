@@ -22,6 +22,7 @@ import {
 } from "@/data/documentationTree";
 import { dummyUsers } from "@/data/userData";
 import api from "@/lib/api";
+import axios from "axios";
 
 export default function NewDocumentPage() {
   const router = useRouter();
@@ -40,12 +41,11 @@ export default function NewDocumentPage() {
   const [userSearchQuery, setUserSearchQuery] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // Submission Status Action State
-
   // Errors & Status
   const [titleError, setTitleError] = useState("");
   const [contentError, setContentError] = useState("");
   const [submittedPayload, setSubmittedPayload] = useState<object | null>(null);
+  const [submitError, setSubmitError] = useState("");
 
   // Parent selection handler with icon state logic
   const handleParentSelect = (newParentId: string | null) => {
@@ -91,48 +91,82 @@ export default function NewDocumentPage() {
   };
 
   const handleSubmit = async (
-  e: React.FormEvent,
-  status: "DRAFT" | "PUBLISHED",
-) => {
-  e.preventDefault();
+    e: React.FormEvent,
+    status: "DRAFT" | "PUBLISHED",
+  ) => {
+    e.preventDefault();
 
-  let isValid = true;
-  setTitleError("");
-  setContentError("");
+    let isValid = true;
 
-  if (!title.trim()) {
-    setTitleError("Document title is required.");
-    isValid = false;
-  }
+    setTitleError("");
+    setContentError("");
+    setSubmitError("");
+    setSubmittedPayload(null);
 
-  if (!contentJson || Object.keys(contentJson).length === 0) {
-    setContentError("Document content cannot be empty.");
-    isValid = false;
-  }
+    if (!title.trim()) {
+      setTitleError("Document title is required.");
+      isValid = false;
+    }
 
-  if (!isValid) return;
+    if (!contentJson || Object.keys(contentJson).length === 0) {
+      setContentError("Document content cannot be empty.");
+      isValid = false;
+    }
 
-  const payload = {
-    title: title.trim(),
-    slug: generatedSlug,
-    icon: parentId === null ? icon : null,
-    content: contentJson,
-    parentId,
-    order: 1,
-    status,
-    accessLevel: accessType,
-    allowedUsers: accessType === "PRIVATE" ? allowedUsers : [],
+    if (!isValid) return;
+
+    const payload = {
+      title: title.trim(),
+      slug: generatedSlug,
+      icon: parentId === null ? icon : null,
+      content: contentJson,
+      parentId,
+      order: 1,
+      status,
+      accessLevel: accessType,
+      allowedUsers: accessType === "PRIVATE" ? allowedUsers : [],
+    };
+
+    try {
+      const response = await api.post("/api/documents", payload);
+
+      console.log("Document created:", response.data);
+      setSubmittedPayload(response.data);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        const statusCode = error.response?.status;
+
+        if (statusCode === 409) {
+          setSubmitError(
+            "A document with this name already exists. Please choose a different title.",
+          );
+        } else if (statusCode === 401) {
+          setSubmitError(
+            "You are not authorized to create documents. Please log in again.",
+          );
+        } else if (statusCode === 400) {
+          setSubmitError(
+            "The document information is invalid. Please check your fields and try again.",
+          );
+        } else {
+          setSubmitError(
+            "Something went wrong while creating the document. Please try again.",
+          );
+        }
+
+        console.error(
+          "Failed to create document:",
+          error.response?.data,
+        );
+      } else {
+        setSubmitError(
+          "Something went wrong while creating the document. Please try again.",
+        );
+
+        console.error("Failed to create document:", error);
+      }
+    }
   };
-
-  try {
-    const response = await api.post("/api/documents", payload);
-
-    console.log("Document created:", response.data);
-    setSubmittedPayload(response.data);
-  } catch (error) {
-    console.error("Failed to create document:", error);
-  }
-};
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 space-y-6">
@@ -159,12 +193,19 @@ export default function NewDocumentPage() {
         </p>
       </div>
 
+      {/* Error Notification Banner */}
+      {submitError && (
+        <div className="p-4 rounded-md bg-danger/10 border border-danger/20 text-danger text-sm">
+          {submitError}
+        </div>
+      )}
+
       {/* Success Notification Banner */}
       {submittedPayload && (
         <div className="p-4 rounded-md bg-success/10 border border-success/20 text-success space-y-2">
           <div className="flex items-center gap-2 font-semibold text-sm">
             <CheckCircle2 size={16} />
-            <span>Document created successfully (logged to console)</span>
+            <span>Document created successfully</span>
           </div>
           <pre className="text-xs bg-background/50 p-3 rounded text-text overflow-x-auto font-mono">
             {JSON.stringify(submittedPayload, null, 2)}
@@ -244,7 +285,7 @@ export default function NewDocumentPage() {
               <input
                 type="radio"
                 name="accessType"
-                value="ALL_AUTHENTICATED"
+                value="CLIENT"
                 checked={accessType === "CLIENT"}
                 onChange={() => setAccessType("CLIENT")}
                 className="accent-primary"
@@ -256,7 +297,7 @@ export default function NewDocumentPage() {
               <input
                 type="radio"
                 name="accessType"
-                value="RESTRICTED"
+                value="PRIVATE"
                 checked={accessType === "PRIVATE"}
                 onChange={() => setAccessType("PRIVATE")}
                 className="accent-primary"

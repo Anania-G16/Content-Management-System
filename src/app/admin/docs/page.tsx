@@ -1,24 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, Search, FileText, AlertTriangle, X } from "lucide-react";
 import DocumentTree from "@/components/DocumentTree";
-import {
-  dummyDocumentationTree,
-  DocumentationNode,
-} from "@/data/documentationTree";
+import { DocumentationNode } from "@/data/documentationTree";
 import api from "@/lib/api";
+import { getAdminDocumentTree } from "@/app/services/documentService";
 
 export default function AdminDocsPage() {
-  const [documents, setDocuments] = useState<DocumentationNode[]>(
-    dummyDocumentationTree,
-  );
+  const [documents, setDocuments] = useState<DocumentationNode[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [nodeToDelete, setNodeToDelete] = useState<DocumentationNode | null>(
     null,
   );
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const data = await getAdminDocumentTree();
+        setDocuments(data);
+      } catch (error) {
+        console.error("Failed to fetch documents:", error);
+      }
+    };
 
+    fetchDocuments();
+  }, []);
   // Helper to check if search returns any visible nodes
   const hasSearchResults = (
     nodes: DocumentationNode[],
