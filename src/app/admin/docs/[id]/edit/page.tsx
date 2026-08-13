@@ -8,6 +8,7 @@ import DocumentEditor from "@/components/DocumentEditor";
 import ParentDocumentSelector from "@/components/ParentDocumentSelector";
 import IconSelector from "@/components/IconSelector";
 import { DocumentationNode } from "@/data/documentationTree";
+import Spinner from "@/components/Spinner";
 import {
   getAdminDocumentTree,
   updateDocument,
@@ -89,6 +90,13 @@ export default function EditDocumentPage({
 
     fetchDocuments();
   }, [id]);
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
 
   if (!existingDoc) {
     return (

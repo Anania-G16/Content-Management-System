@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { getAdminDocumentTree } from "@/app/services/documentService";
 import { DocumentationNode } from "@/data/documentationTree";
+import Spinner from "@/components/Spinner";
 import Link from "next/link";
 import {
   Plus,
@@ -103,7 +104,7 @@ function formatUpdatedAt(updatedAt?: string): string {
 
 export default function AdminDashboardPage() {
   const [documents, setDocuments] = useState<DocumentationNode[]>([]);
-
+  const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     const fetchDocuments = async () => {
       try {
@@ -111,6 +112,8 @@ export default function AdminDashboardPage() {
         setDocuments(data);
       } catch (error) {
         console.error("Failed to fetch documents:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -175,9 +178,13 @@ export default function AdminDashboardPage() {
                 <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider block mb-1">
                   {stat.title}
                 </span>
-                <span className="text-3xl font-bold text-text">
-                  {stat.value}
-                </span>
+                {isLoading ? (
+                  <div className="h-9 w-12 rounded-md bg-text-secondary/20 animate-pulse" />
+                ) : (
+                  <span className="text-3xl font-bold text-text">
+                    {stat.value}
+                  </span>
+                )}
               </div>
               <div
                 className={`p-3 rounded-md bg-background border border-border ${stat.color}`}
@@ -211,60 +218,70 @@ export default function AdminDashboardPage() {
                   </th>
                 </tr>
               </thead>
+
               <tbody className="divide-y divide-border">
-                {documents.map((doc) => (
-                  <tr
-                    key={doc.id}
-                    className="hover:bg-background/50 transition-colors"
-                  >
-                    {/* Title & URL */}
-                    <td className="px-4 py-3">
-                      <div className="font-medium text-text">{doc.title}</div>
-                      <div className="text-xs text-text-secondary font-mono">
-                        /docs/{doc.slug}
-                      </div>
-                    </td>
-
-                    {/* Published / Draft Tag */}
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
-                          doc.status === "PUBLISHED"
-                            ? "bg-success/10 text-success"
-                            : "bg-text-secondary/10 text-text-secondary"
-                        }`}
-                      >
-                        {doc.status}
-                      </span>
-                    </td>
-
-                    {/* Date */}
-                    <td className="px-4 py-3 text-xs">{formatUpdatedAt(doc.updatedAt)}</td>
-
-                    {/* Actions */}
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-3">
-                        <Link
-                          href={`/docs/${doc.slug}`}
-                          target="_blank"
-                          className="text-text-secondary hover:text-text transition-colors flex items-center gap-1 text-xs"
-                          title="View on site"
-                        >
-                          <Eye size={14} />
-                          <span>View</span>
-                        </Link>
-                        <Link
-                          href={`/admin/docs/${doc.id}/edit`}
-                          className="text-primary hover:text-primary-text transition-colors flex items-center gap-1 text-xs font-medium"
-                          title="Edit document"
-                        >
-                          <Edit size={14} />
-                          <span>Edit</span>
-                        </Link>
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={4}>
+                      <div className="flex items-center justify-center py-12">
+                        <Spinner size="md" />
                       </div>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  documents.map((doc) => (
+                    <tr
+                      key={doc.id}
+                      className="hover:bg-background/50 transition-colors"
+                    >
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-text">{doc.title}</div>
+                        <div className="text-xs text-text-secondary font-mono">
+                          /docs/{doc.slug}
+                        </div>
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
+                            doc.status === "PUBLISHED"
+                              ? "bg-success/10 text-success"
+                              : "bg-text-secondary/10 text-text-secondary"
+                          }`}
+                        >
+                          {doc.status}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-3 text-xs">
+                        {formatUpdatedAt(doc.updatedAt)}
+                      </td>
+
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-3">
+                          <Link
+                            href={`/docs/${doc.slug}`}
+                            target="_blank"
+                            className="text-text-secondary hover:text-text transition-colors flex items-center gap-1 text-xs"
+                            title="View on site"
+                          >
+                            <Eye size={14} />
+                            <span>View</span>
+                          </Link>
+
+                          <Link
+                            href={`/admin/docs/${doc.id}/edit`}
+                            className="text-primary hover:text-primary-text transition-colors flex items-center gap-1 text-xs font-medium"
+                            title="Edit document"
+                          >
+                            <Edit size={14} />
+                            <span>Edit</span>
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

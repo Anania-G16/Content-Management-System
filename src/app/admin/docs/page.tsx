@@ -6,10 +6,14 @@ import { Plus, Search, FileText, AlertTriangle, X } from "lucide-react";
 import DocumentTree from "@/components/DocumentTree";
 import { DocumentationNode } from "@/data/documentationTree";
 import api from "@/lib/api";
-import { getAdminDocumentTree, deleteDocument } from "@/app/services/documentService";
-
+import Spinner from "@/components/Spinner";
+import {
+  getAdminDocumentTree,
+  deleteDocument,
+} from "@/app/services/documentService";
 
 export default function AdminDocsPage() {
+  const [isLoading, setIsLoading] = useState(true);
   const [documents, setDocuments] = useState<DocumentationNode[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [nodeToDelete, setNodeToDelete] = useState<DocumentationNode | null>(
@@ -22,6 +26,8 @@ export default function AdminDocsPage() {
         setDocuments(data);
       } catch (error) {
         console.error("Failed to fetch documents:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -44,27 +50,27 @@ export default function AdminDocsPage() {
     !isTreeEmpty && !hasSearchResults(documents, searchQuery);
 
   const confirmDelete = async () => {
-  if (!nodeToDelete) return;
+    if (!nodeToDelete) return;
 
-  try {
-    await deleteDocument(nodeToDelete.id);
+    try {
+      await deleteDocument(nodeToDelete.id);
 
-    // Only update the UI after the backend successfully deletes it
-    const removeNode = (list: DocumentationNode[]): DocumentationNode[] => {
-      return list
-        .filter((item) => item.id !== nodeToDelete.id)
-        .map((item) => ({
-          ...item,
-          children: item.children ? removeNode(item.children) : undefined,
-        }));
-    };
+      // Only update the UI after the backend successfully deletes it
+      const removeNode = (list: DocumentationNode[]): DocumentationNode[] => {
+        return list
+          .filter((item) => item.id !== nodeToDelete.id)
+          .map((item) => ({
+            ...item,
+            children: item.children ? removeNode(item.children) : undefined,
+          }));
+      };
 
-    setDocuments((prev) => removeNode(prev));
-    setNodeToDelete(null);
-  } catch (error) {
-    console.error("Failed to delete document:", error);
-  }
-};
+      setDocuments((prev) => removeNode(prev));
+      setNodeToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete document:", error);
+    }
+  };
 
   return (
     <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 space-y-6">
@@ -87,75 +93,68 @@ export default function AdminDocsPage() {
           <span>New Document</span>
         </Link>
       </div>
-
-      {/* Search Bar */}
-      {!isTreeEmpty && (
-        <div className="relative max-w-md">
-          <Search
-            size={15}
-            className="absolute left-3 top-3 text-text-secondary"
-          />
-          <input
-            type="text"
-            placeholder="Search documentation..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm rounded-md bg-surface border border-border text-text placeholder:text-text-secondary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
-          />
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Spinner size="lg" />
         </div>
-      )}
+      ) : (
+        <>
+          {/* Document Tree Content */}
+          {!isTreeEmpty && !isSearchEmpty && (
+            <DocumentTree
+              nodes={documents}
+              searchQuery={searchQuery}
+              onDeleteRequest={(node) => setNodeToDelete(node)}
+            />
+          )}
 
-      {/* Document Tree Content */}
-      {!isTreeEmpty && !isSearchEmpty && (
-        <DocumentTree
-          nodes={documents}
-          searchQuery={searchQuery}
-          onDeleteRequest={(node) => setNodeToDelete(node)}
-        />
-      )}
+          {/* Search Empty State */}
+          {isSearchEmpty && (
+            <div className="p-8 text-center rounded-md bg-surface border border-border space-y-3">
+              <p className="text-sm text-text-secondary">
+                No documentation matching{" "}
+                <span className="text-text font-medium">"{searchQuery}"</span>.
+              </p>
 
-      {/* Search Empty State */}
-      {isSearchEmpty && (
-        <div className="p-8 text-center rounded-md bg-surface border border-border space-y-3">
-          <p className="text-sm text-text-secondary">
-            No documentation matching{" "}
-            <span className="text-text font-medium">"{searchQuery}"</span>.
-          </p>
-          <button
-            type="button"
-            onClick={() => setSearchQuery("")}
-            className="text-xs font-medium text-primary hover:underline"
-          >
-            Clear Search
-          </button>
-        </div>
-      )}
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                Clear Search
+              </button>
+            </div>
+          )}
 
-      {/* Complete Root Empty State */}
-      {isTreeEmpty && (
-        <div className="p-12 text-center rounded-md bg-surface border border-border space-y-4">
-          <div className="p-3 rounded-full bg-primary/10 text-primary w-fit mx-auto">
-            <FileText size={28} />
-          </div>
-          <div className="space-y-1">
-            <h3 className="text-lg font-semibold text-text">
-              No documentation yet
-            </h3>
-            <p className="text-sm text-text-secondary max-w-sm mx-auto">
-              Create your first document to start building your documentation
-              tree.
-            </p>
-          </div>
-          <Link
-            href="/admin/docs/new"
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-primary text-text text-sm font-medium hover:bg-primary-active transition-colors"
-          >
-            <Plus size={16} />
-            <span>Create First Document</span>
-          </Link>
-        </div>
-      )}
+          {/* Complete Root Empty State */}
+          {isTreeEmpty && (
+            <div className="p-12 text-center rounded-md bg-surface border border-border space-y-4">
+              <div className="p-3 rounded-full bg-primary/10 text-primary w-fit mx-auto">
+                <FileText size={28} />
+              </div>
 
+              <div className="space-y-1">
+                <h3 className="text-lg font-semibold text-text">
+                  No documentation yet
+                </h3>
+
+                <p className="text-sm text-text-secondary max-w-sm mx-auto">
+                  Create your first document to start building your
+                  documentation tree.
+                </p>
+              </div>
+
+              <Link
+                href="/admin/docs/new"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-primary text-text text-sm font-medium hover:bg-primary-active transition-colors"
+              >
+                <Plus size={16} />
+                <span>Create First Document</span>
+              </Link>
+            </div>
+          )}
+        </>
+      )}
       {/* Delete Confirmation Modal */}
       {nodeToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
