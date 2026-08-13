@@ -1,16 +1,14 @@
 "use client";
 
-import { useState, use } from "react";
+import { useState, use, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, AlertCircle, FileText, CheckCircle2 } from "lucide-react";
 import DocumentEditor from "@/components/DocumentEditor";
 import ParentDocumentSelector from "@/components/ParentDocumentSelector";
 import IconSelector from "@/components/IconSelector";
-import {
-  dummyDocumentationTree,
-  DocumentationNode,
-} from "@/data/documentationTree";
+import { DocumentationNode } from "@/data/documentationTree";
+import { getAdminDocumentTree } from "@/app/services/documentService";
 
 // Flatten document tree helper to easily find matching route ID
 function findDocumentById(
@@ -44,9 +42,11 @@ export default function EditDocumentPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-
-  // Look up document in initial dummy data
-  const existingDoc = findDocumentById(dummyDocumentationTree, id);
+  const [documents, setDocuments] = useState<DocumentationNode[]>([]);
+  const [existingDoc, setExistingDoc] = useState<DocumentationNode | null>(
+    null,
+  );
+  const [isLoading, setIsLoading] = useState(true);
 
   // Form State initialized with found document data
   const [title, setTitle] = useState(existingDoc?.title || "");
@@ -54,13 +54,37 @@ export default function EditDocumentPage({
     existingDoc?.parentId || null,
   );
   const [icon, setIcon] = useState<string | null>(
-    existingDoc?.icon || "BookOpen"
+    existingDoc?.icon || "BookOpen",
   );
   const [editorContent, setEditorContent] = useState<object | null>(
     existingDoc?.content || null,
   );
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const data = await getAdminDocumentTree();
+
+        setDocuments(data);
+
+        const document = findDocumentById(data, id);
+        setExistingDoc(document);
+        if (document) {
+          setTitle(document.title);
+          setParentId(document.parentId);
+          setIcon(document.icon || "BookOpen");
+          setEditorContent(document.content || null);
+        }
+      } catch (error) {
+        console.error("Failed to fetch document:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDocuments();
+  }, [id]);
 
   if (!existingDoc) {
     return (
@@ -182,7 +206,7 @@ export default function EditDocumentPage({
             Parent Document
           </label>
           <ParentDocumentSelector
-            nodes={dummyDocumentationTree}
+            nodes={documents}
             selectedId={parentId}
             onSelect={handleParentChange}
             currentDocumentId={existingDoc.id}
