@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -16,16 +16,15 @@ import ParentDocumentSelector, {
 } from "@/components/ParentDocumentSelector";
 import DocumentEditor from "@/components/DocumentEditor";
 import IconSelector from "@/components/IconSelector";
-import {
-  dummyDocumentationTree,
-  DocumentationNode,
-} from "@/data/documentationTree";
+import { DocumentationNode } from "@/data/documentationTree";
 import { dummyUsers } from "@/data/userData";
 import api from "@/lib/api";
 import axios from "axios";
+import { getAdminDocumentTree } from "@/app/services/documentService";
 
 export default function NewDocumentPage() {
   const router = useRouter();
+  const [documents, setDocuments] = useState<DocumentationNode[]>([]);
 
   // Form State
   const [title, setTitle] = useState("");
@@ -34,9 +33,9 @@ export default function NewDocumentPage() {
   const [contentJson, setContentJson] = useState<object | null>(null);
 
   // Access Control State
-  const [accessType, setAccessType] = useState<
-    "PUBLIC" | "CLIENT" | "PRIVATE"
-  >("CLIENT");
+  const [accessType, setAccessType] = useState<"PUBLIC" | "CLIENT" | "PRIVATE">(
+    "CLIENT",
+  );
   const [allowedUsers, setAllowedUsers] = useState<string[]>([]);
   const [userSearchQuery, setUserSearchQuery] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -65,8 +64,21 @@ export default function NewDocumentPage() {
     .replace(/[\s_-]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const data = await getAdminDocumentTree();
+        setDocuments(data);
+      } catch (error) {
+        console.error("Failed to fetch documents:", error);
+      }
+    };
+
+    fetchDocuments();
+  }, []);
+
   // Build full route path for preview
-  const parentPathSegments = findNodePath(dummyDocumentationTree, parentId);
+  const parentPathSegments = findNodePath(documents, parentId);
   const fullPreviewUrl = `/docs/${[...parentPathSegments, generatedSlug || "new-document"].join("/")}`;
 
   // Filter users based on search input
@@ -154,10 +166,7 @@ export default function NewDocumentPage() {
           );
         }
 
-        console.error(
-          "Failed to create document:",
-          error.response?.data,
-        );
+        console.error("Failed to create document:", error.response?.data);
       } else {
         setSubmitError(
           "Something went wrong while creating the document. Please try again.",
@@ -243,7 +252,7 @@ export default function NewDocumentPage() {
             Parent Documentation
           </label>
           <ParentDocumentSelector
-            nodes={dummyDocumentationTree}
+            nodes={documents}
             selectedId={parentId}
             onSelect={handleParentSelect}
           />
