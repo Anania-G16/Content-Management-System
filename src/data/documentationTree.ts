@@ -6,6 +6,9 @@ export type DocumentationNode = {
   icon?: string | null;
   content?: object;
   children?: DocumentationNode[];
+
+   status?: "DRAFT" | "PUBLISHED";
+  updatedAt?: string;
 };
 
 export const dummyDocumentationTree: DocumentationNode[] = [

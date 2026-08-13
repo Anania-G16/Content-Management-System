@@ -22,7 +22,9 @@ export function DocumentTreeNode({
   const [isExpanded, setIsExpanded] = useState(true);
 
   // Search filter matching
-  const matchesSearch = node.title.toLowerCase().includes(searchQuery.toLowerCase());
+  const matchesSearch = node.title
+    .toLowerCase()
+    .includes(searchQuery.toLowerCase());
   const hasMatchingChild = node.children?.some(function check(child): boolean {
     return (
       child.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -54,7 +56,11 @@ export function DocumentTreeNode({
               className="p-1 rounded text-text-secondary hover:text-text hover:bg-background transition-colors shrink-0"
               aria-label={isExpanded ? "Collapse section" : "Expand section"}
             >
-              {isExpanded ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+              {isExpanded ? (
+                <ChevronDown size={15} />
+              ) : (
+                <ChevronRight size={15} />
+              )}
             </button>
           ) : (
             <span className="w-6 shrink-0" />
@@ -65,7 +71,19 @@ export function DocumentTreeNode({
           {/* Title & Slug */}
           <div className="min-w-0 truncate">
             <span className="text-sm font-medium text-text truncate block">
-              {node.title}
+              <div className="flex items-center gap-2">
+                <span>{node.title}</span>
+                {node.status === "PUBLISHED" && (
+                  <span className="px-1.5 py-0.5 rounded border border-success/30 bg-success/10 text-[10px] font-medium text-success">
+                    Published
+                  </span>
+                )}
+                {node.status === "DRAFT" && (
+                  <span className="px-1.5 py-0.5 rounded border border-text-secondary/30 text-[10px] font-medium text-text-secondary">
+                    Draft
+                  </span>
+                )}
+              </div>
             </span>
             <span className="text-xs font-mono text-text-secondary truncate block">
               /docs/{node.slug}

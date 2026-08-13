@@ -8,6 +8,8 @@ type ApiDocumentNode = {
   parentId: string | null;
   icon?: string | null;
   content?: object;
+  status?: "DRAFT" | "PUBLISHED";
+  updatedAt?: string;
   children?: ApiDocumentNode[];
 };
 
@@ -19,6 +21,8 @@ const mapDocumentNode = (node: ApiDocumentNode): DocumentationNode => {
     parentId: node.parentId,
     icon: node.icon,
     content: node.content,
+    status: node.status,
+    updatedAt: node.updatedAt,
     children: node.children?.map(mapDocumentNode),
   };
 };

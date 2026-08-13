@@ -1,3 +1,7 @@
+"use client";
+import { useEffect, useState } from "react";
+import { getAdminDocumentTree } from "@/app/services/documentService";
+import { DocumentationNode } from "@/data/documentationTree";
 import Link from "next/link";
 import {
   Plus,
@@ -53,7 +57,89 @@ const documents = [
   },
 ];
 
+function countDocuments(nodes: DocumentationNode[]): number {
+  return nodes.reduce((count, node) => {
+    return count + 1 + countDocuments(node.children ?? []);
+  }, 0);
+}
+
+function countPublishedDocuments(nodes: DocumentationNode[]): number {
+  return nodes.reduce((count, node) => {
+    return (
+      count +
+      (node.status === "PUBLISHED" ? 1 : 0) +
+      countPublishedDocuments(node.children ?? [])
+    );
+  }, 0);
+}
+function countDraftDocuments(nodes: DocumentationNode[]): number {
+  return nodes.reduce((count, node) => {
+    return (
+      count +
+      (node.status === "DRAFT" ? 1 : 0) +
+      countDraftDocuments(node.children ?? [])
+    );
+  }, 0);
+}
+
+function formatUpdatedAt(updatedAt?: string): string {
+  if (!updatedAt) return "—";
+
+  const date = new Date(updatedAt);
+  const now = new Date();
+
+  const diffInMs = now.getTime() - date.getTime();
+  const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+  if (diffInDays === 0) return "Today";
+  if (diffInDays === 1) return "Yesterday";
+
+  return date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 export default function AdminDashboardPage() {
+  const [documents, setDocuments] = useState<DocumentationNode[]>([]);
+
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const data = await getAdminDocumentTree();
+        setDocuments(data);
+      } catch (error) {
+        console.error("Failed to fetch documents:", error);
+      }
+    };
+
+    fetchDocuments();
+  }, []);
+  const totalDocuments = countDocuments(documents);
+  const totalPublishedDocuments = countPublishedDocuments(documents);
+  const totalDraftDocuments = countDraftDocuments(documents);
+
+  const stats = [
+    {
+      title: "Total Documents",
+      value: totalDocuments.toString(),
+      icon: FileText,
+      color: "text-primary",
+    },
+    {
+      title: "Published",
+      value: totalPublishedDocuments.toString(),
+      icon: CheckCircle2,
+      color: "text-success",
+    },
+    {
+      title: "Drafts",
+      value: totalDraftDocuments.toString(),
+      icon: FileEdit,
+      color: "text-accent",
+    },
+  ];
   return (
     <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 space-y-8">
       {/* Header & Quick Action */}
@@ -108,7 +194,7 @@ export default function AdminDashboardPage() {
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-text flex items-center gap-2">
             <FileText size={18} className="text-primary" />
-            <span>All Documents ({documents.length})</span>
+            <span>Top-Level Documents ({documents.length})</span>
           </h2>
         </div>
 
@@ -143,7 +229,7 @@ export default function AdminDashboardPage() {
                     <td className="px-4 py-3">
                       <span
                         className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
-                          doc.status === "Published"
+                          doc.status === "PUBLISHED"
                             ? "bg-success/10 text-success"
                             : "bg-text-secondary/10 text-text-secondary"
                         }`}
@@ -153,7 +239,7 @@ export default function AdminDashboardPage() {
                     </td>
 
                     {/* Date */}
-                    <td className="px-4 py-3 text-xs">{doc.updatedAt}</td>
+                    <td className="px-4 py-3 text-xs">{formatUpdatedAt(doc.updatedAt)}</td>
 
                     {/* Actions */}
                     <td className="px-4 py-3 text-right">
@@ -168,7 +254,7 @@ export default function AdminDashboardPage() {
                           <span>View</span>
                         </Link>
                         <Link
-                          href={`/admin/dashboard/documents/${doc.id}`}
+                          href={`/admin/docs/${doc.id}/edit`}
                           className="text-primary hover:text-primary-text transition-colors flex items-center gap-1 text-xs font-medium"
                           title="Edit document"
                         >
