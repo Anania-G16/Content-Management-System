@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -24,11 +25,13 @@ import { getAdminDocumentTree } from "@/app/services/documentService";
 
 export default function NewDocumentPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialParentId = searchParams.get("parentId");
   const [documents, setDocuments] = useState<DocumentationNode[]>([]);
 
   // Form State
   const [title, setTitle] = useState("");
-  const [parentId, setParentId] = useState<string | null>(null);
+  const [parentId, setParentId] = useState<string | null>(initialParentId);
   const [icon, setIcon] = useState<string | null>("BookOpen");
   const [contentJson, setContentJson] = useState<object | null>(null);
 
