@@ -8,7 +8,11 @@ import DocumentEditor from "@/components/DocumentEditor";
 import ParentDocumentSelector from "@/components/ParentDocumentSelector";
 import IconSelector from "@/components/IconSelector";
 import { DocumentationNode } from "@/data/documentationTree";
-import { getAdminDocumentTree } from "@/app/services/documentService";
+import {
+  getAdminDocumentTree,
+  updateDocument,
+} from "@/app/services/documentService";
+import axios from "axios";
 
 // Flatten document tree helper to easily find matching route ID
 function findDocumentById(
@@ -121,7 +125,7 @@ export default function EditDocumentPage({
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!title.trim()) {
       setError("Document title is required.");
       return;
@@ -130,7 +134,7 @@ export default function EditDocumentPage({
     setError("");
 
     const payload = {
-      id: existingDoc.id,
+      // id: existingDoc.id,
       title: title.trim(),
       slug: generatedSlug,
       parentId,
@@ -138,12 +142,24 @@ export default function EditDocumentPage({
       content: editorContent,
     };
 
-    console.log("Updated Document Payload:", payload);
-    setSuccess(true);
+    try {
+      await updateDocument(existingDoc.id, payload);
 
-    setTimeout(() => {
-      router.push("/admin/docs");
-    }, 1200);
+      setSuccess(true);
+
+      setTimeout(() => {
+        router.push("/admin/docs");
+      }, 1200);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        console.error("Update error:", error.response?.data);
+        console.error("Status:", error.response?.status);
+      } else {
+        console.error("Update error:", error);
+      }
+
+      setError("Failed to update document. Please try again.");
+    }
   };
 
   return (

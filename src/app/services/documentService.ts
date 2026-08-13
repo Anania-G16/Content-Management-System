@@ -28,3 +28,11 @@ export async function getAdminDocumentTree(): Promise<DocumentationNode[]> {
 
   return response.data.map(mapDocumentNode);
 }
+
+export async function updateDocument(
+  id: string,
+  payload: object,
+) {
+  const response = await api.patch(`/api/documents/${id}`, payload);
+  return response.data;
+}
