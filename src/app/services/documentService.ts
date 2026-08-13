@@ -36,3 +36,8 @@ export async function updateDocument(
   const response = await api.patch(`/api/documents/${id}`, payload);
   return response.data;
 }
+
+export async function deleteDocument(id: string) {
+  const response = await api.delete(`/api/documents/${id}`);
+  return response.data;
+}

@@ -6,7 +6,8 @@ import { Plus, Search, FileText, AlertTriangle, X } from "lucide-react";
 import DocumentTree from "@/components/DocumentTree";
 import { DocumentationNode } from "@/data/documentationTree";
 import api from "@/lib/api";
-import { getAdminDocumentTree } from "@/app/services/documentService";
+import { getAdminDocumentTree, deleteDocument } from "@/app/services/documentService";
+
 
 export default function AdminDocsPage() {
   const [documents, setDocuments] = useState<DocumentationNode[]>([]);
@@ -42,10 +43,13 @@ export default function AdminDocsPage() {
   const isSearchEmpty =
     !isTreeEmpty && !hasSearchResults(documents, searchQuery);
 
-  const confirmDelete = () => {
-    if (!nodeToDelete) return;
+  const confirmDelete = async () => {
+  if (!nodeToDelete) return;
 
-    // Helper function to remove a node recursively from tree state
+  try {
+    await deleteDocument(nodeToDelete.id);
+
+    // Only update the UI after the backend successfully deletes it
     const removeNode = (list: DocumentationNode[]): DocumentationNode[] => {
       return list
         .filter((item) => item.id !== nodeToDelete.id)
@@ -57,7 +61,10 @@ export default function AdminDocsPage() {
 
     setDocuments((prev) => removeNode(prev));
     setNodeToDelete(null);
-  };
+  } catch (error) {
+    console.error("Failed to delete document:", error);
+  }
+};
 
   return (
     <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 space-y-6">
