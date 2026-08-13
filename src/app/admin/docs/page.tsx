@@ -4,13 +4,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus, Search, FileText, AlertTriangle, X } from "lucide-react";
 import DocumentTree from "@/components/DocumentTree";
+import Spinner from "@/components/Spinner";
 import { DocumentationNode } from "@/data/documentationTree";
 import api from "@/lib/api";
-import Spinner from "@/components/Spinner";
-import {
-  getAdminDocumentTree,
-  deleteDocument,
-} from "@/app/services/documentService";
+import { getAdminDocumentTree, deleteDocument } from "@/app/services/documentService";
 
 export default function AdminDocsPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -19,6 +16,7 @@ export default function AdminDocsPage() {
   const [nodeToDelete, setNodeToDelete] = useState<DocumentationNode | null>(
     null,
   );
+
   useEffect(() => {
     const fetchDocuments = async () => {
       try {
@@ -33,6 +31,7 @@ export default function AdminDocsPage() {
 
     fetchDocuments();
   }, []);
+
   // Helper to check if search returns any visible nodes
   const hasSearchResults = (
     nodes: DocumentationNode[],
@@ -93,12 +92,31 @@ export default function AdminDocsPage() {
           <span>New Document</span>
         </Link>
       </div>
+
+      {/* Loading State Spinner */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Spinner size="lg" />
+        <div className="flex items-center justify-center py-16">
+          <Spinner size="md" />
         </div>
       ) : (
         <>
+          {/* Search Bar */}
+          {!isTreeEmpty && (
+            <div className="relative max-w-md">
+              <Search
+                size={15}
+                className="absolute left-3 top-3 text-text-secondary"
+              />
+              <input
+                type="text"
+                placeholder="Search documentation..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 text-sm rounded-md bg-surface border border-border text-text placeholder:text-text-secondary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
+              />
+            </div>
+          )}
+
           {/* Document Tree Content */}
           {!isTreeEmpty && !isSearchEmpty && (
             <DocumentTree
@@ -115,7 +133,6 @@ export default function AdminDocsPage() {
                 No documentation matching{" "}
                 <span className="text-text font-medium">"{searchQuery}"</span>.
               </p>
-
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
@@ -132,18 +149,15 @@ export default function AdminDocsPage() {
               <div className="p-3 rounded-full bg-primary/10 text-primary w-fit mx-auto">
                 <FileText size={28} />
               </div>
-
               <div className="space-y-1">
                 <h3 className="text-lg font-semibold text-text">
                   No documentation yet
                 </h3>
-
                 <p className="text-sm text-text-secondary max-w-sm mx-auto">
-                  Create your first document to start building your
-                  documentation tree.
+                  Create your first document to start building your documentation
+                  tree.
                 </p>
               </div>
-
               <Link
                 href="/admin/docs/new"
                 className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-primary text-text text-sm font-medium hover:bg-primary-active transition-colors"
@@ -155,6 +169,7 @@ export default function AdminDocsPage() {
           )}
         </>
       )}
+
       {/* Delete Confirmation Modal */}
       {nodeToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
