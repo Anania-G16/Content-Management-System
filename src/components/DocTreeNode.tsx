@@ -50,10 +50,10 @@ export default function DocTreeNode({
     <li className="list-none">
       <div
         onClick={toggleExpand}
-        className={`group flex items-center justify-between rounded-md text-sm font-medium transition-colors cursor-pointer ${
+        className={`group flex items-center justify-between rounded-md text-sm font-medium transition-colors cursor-pointer border ${
           isActive
-            ? "bg-white/5 border border-white/8 text-text backdrop-blur-sm shadow-sm"
-            : "text-text-secondary hover:bg-white/3 hover:text-text border border-transparent"
+            ? "bg-accent/40 text-text font-semibold border-border/50"
+            : "border-transparent text-text-secondary hover:bg-accent/20 hover:text-text"
         }`}
         style={{ paddingLeft: `${Math.max(0.5, depth * 0.75 + 0.5)}rem` }}
       >
@@ -64,7 +64,10 @@ export default function DocTreeNode({
           className="flex-1 py-1.5 pr-2 truncate flex items-center gap-2"
         >
           {RootIconComponent && (
-            <RootIconComponent size={16} className="shrink-0 text-text-secondary group-hover:text-text transition-colors" />
+            <RootIconComponent
+              size={16}
+              className="shrink-0 text-text-secondary group-hover:text-text transition-colors"
+            />
           )}
           <span className="truncate">{node.title}</span>
         </Link>
@@ -85,11 +88,13 @@ export default function DocTreeNode({
       {hasChildren && (
         <div
           className={`grid transition-all duration-200 ease-out ${
-            isExpanded ? "grid-rows-[1fr] opacity-100 mt-0.5" : "grid-rows-[0fr] opacity-0 mt-0"
+            isExpanded
+              ? "grid-rows-[1fr] opacity-100 mt-0.5"
+              : "grid-rows-[0fr] opacity-0 mt-0"
           }`}
         >
           <div className="overflow-hidden">
-            <ul className="space-y-0.5 border-l border-white/6 ml-3">
+            <ul className="space-y-0.5 border-l border-border/40 ml-3">
               {node.children!.map((child) => (
                 <DocTreeNode
                   key={child.id}

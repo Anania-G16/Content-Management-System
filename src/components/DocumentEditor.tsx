@@ -2,6 +2,8 @@
 
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { TextStyle } from "@tiptap/extension-text-style";
+import { Color } from "@tiptap/extension-color";
 import {
   Bold,
   Italic,
@@ -16,6 +18,8 @@ import {
   Minus,
   Undo,
   Redo,
+  Palette,
+  RotateCcw,
 } from "lucide-react";
 
 interface DocumentEditorProps {
@@ -23,9 +27,29 @@ interface DocumentEditorProps {
   initialContent?: object | null;
 }
 
+// 3-tier text color palette aligned with your layout styles
+const TEXT_COLORS = [
+  { 
+    name: "Title Color", 
+    hex: "var(--color-text, #f1f5f9)" 
+  },
+  { 
+    name: "Subtitle Color (Mid-tone)", 
+    hex: "color-mix(in srgb, var(--color-text, #f1f5f9) 50%, var(--color-text-secondary, #94a3b8) 50%)" 
+  },
+  { 
+    name: "Content Color (Sidebar)", 
+    hex: "var(--color-text-secondary, #94a3b8)" 
+  },
+];
+
 export default function DocumentEditor({ onChange, initialContent }: DocumentEditorProps) {
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [
+      StarterKit,
+      TextStyle,
+      Color,
+    ],
     immediatelyRender: false,
     content: initialContent || "",
     editorProps: {
@@ -43,7 +67,7 @@ export default function DocumentEditor({ onChange, initialContent }: DocumentEdi
 
   return (
     <div className="rounded-md border border-border bg-surface overflow-hidden">
-      {/* Editor Styles for Headings, Lists, Quotes & Code */}
+      {/* Editor Custom Styles */}
       <style jsx global>{`
         .tiptap-editor h1 {
           font-size: 1.875rem;
@@ -144,6 +168,42 @@ export default function DocumentEditor({ onChange, initialContent }: DocumentEdi
         >
           <Italic size={15} />
         </button>
+
+        <div className="w-px h-4 bg-border mx-1" />
+
+        {/* Dynamic Theme Text Colors */}
+        <div className="flex items-center gap-1 px-1">
+          <Palette size={14} className="text-text-secondary mr-0.5" />
+          {TEXT_COLORS.map((color) => {
+            const isActive = editor.isActive("textStyle", { color: color.hex });
+            return (
+              <button
+                key={color.name}
+                type="button"
+                onClick={() => editor.chain().focus().setColor(color.hex).run()}
+                className={`w-5 h-5 rounded-full flex items-center justify-center transition-transform hover:scale-110 border ${
+                  isActive ? "border-text ring-1 ring-text" : "border-border"
+                }`}
+                title={color.name}
+              >
+                <span
+                  className="w-3.5 h-3.5 rounded-full"
+                  style={{ backgroundColor: color.hex }}
+                />
+              </button>
+            );
+          })}
+
+          {/* Reset Color */}
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().unsetMark("textStyle").run()}
+            className="p-1 rounded text-xs text-text-secondary hover:text-text hover:bg-surface transition-colors ml-0.5"
+            title="Reset Text Color"
+          >
+            <RotateCcw size={13} />
+          </button>
+        </div>
 
         <div className="w-px h-4 bg-border mx-1" />
 
