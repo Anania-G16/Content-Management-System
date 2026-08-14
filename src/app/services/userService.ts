@@ -28,3 +28,17 @@ export async function getClients(): Promise<User[]> {
 
   return response.data.map(mapClient);
 }
+
+export async function updateUserStatus(id: string, isActive: boolean) {
+  const response = await api.patch(`/api/users/${id}/status`, {
+    isActive,
+  });
+
+  return response.data;
+}
+
+export async function deleteUser(id: string) {
+  const response = await api.delete(`/api/users/${id}`);
+
+  return response.data;
+}

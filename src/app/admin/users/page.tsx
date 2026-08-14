@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getClients } from "@/app/services/userService";
+import {
+  getClients,
+  updateUserStatus,
+  deleteUser,
+} from "@/app/services/userService";
 import {
   Search,
   MoreVertical,
@@ -13,26 +17,35 @@ import {
   Trash2,
   AlertTriangle,
 } from "lucide-react";
-import { dummyUsers, User, UserRole } from "@/data/userData";
+import { User, UserRole } from "@/data/userData";
+import Spinner from "@/components/Spinner";
 
 export default function UsersPage() {
+  const [isLoading, setIsLoading] = useState(true);
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [menuPosition, setMenuPosition] = useState<{
+    top: number;
+    right: number;
+    openUpward: boolean;
+  } | null>(null);
 
   useEffect(() => {
-  const fetchUsers = async () => {
-    try {
-      const data = await getClients();
-      setUsers(data);
-    } catch (error) {
-      console.error("Failed to fetch clients:", error);
-    }
-  };
+    const fetchUsers = async () => {
+      try {
+        const data = await getClients();
+        setUsers(data);
+      } catch (error) {
+        console.error("Failed to fetch clients:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  fetchUsers();
-}, []);
+    fetchUsers();
+  }, []);
 
   // Search filter matching name or email
   const filteredUsers = users.filter(
@@ -45,23 +58,45 @@ export default function UsersPage() {
     setActiveMenuId(activeMenuId === userId ? null : userId);
   };
 
-  // Toggle user activation state
-  const handleToggleDeactivate = (userId: string) => {
-    setUsers((prevUsers) =>
-      prevUsers.map((u) =>
-        u.id === userId ? { ...u, isDeactivated: !u.isDeactivated } : u,
-      ),
-    );
-    setActiveMenuId(null);
+  const handleToggleDeactivate = async (userId: string) => {
+    const user = users.find((u) => u.id === userId);
+
+    if (!user) return;
+
+    try {
+      const newIsActive = user.isDeactivated === true;
+
+      await updateUserStatus(userId, newIsActive);
+
+      setUsers((prevUsers) =>
+        prevUsers.map((u) =>
+          u.id === userId ? { ...u, isDeactivated: !newIsActive } : u,
+        ),
+      );
+
+      setActiveMenuId(null);
+      setMenuPosition(null);
+    } catch (error) {
+      console.error("Failed to update user status:", error);
+    }
   };
 
-  // Delete user from local state
-  const handleConfirmDelete = () => {
+  //Delete
+  const handleConfirmDelete = async () => {
     if (!userToDelete) return;
-    setUsers((prevUsers) => prevUsers.filter((u) => u.id !== userToDelete.id));
-    setUserToDelete(null);
-  };
 
+    try {
+      await deleteUser(userToDelete.id);
+
+      setUsers((prevUsers) =>
+        prevUsers.filter((u) => u.id !== userToDelete.id),
+      );
+
+      setUserToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete user:", error);
+    }
+  };
   const getRoleBadge = (role: UserRole) => {
     if (role === "Admin") {
       return (
@@ -91,13 +126,6 @@ export default function UsersPage() {
             Manage user accounts, roles, and system access.
           </p>
         </div>
-        {/* <button
-          type="button"
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-text text-background font-medium text-sm hover:bg-white/90 transition-colors shadow-sm"
-        >
-          <UserPlus size={16} />
-          Add User
-        </button> */}
       </div>
 
       {/* Toolbar / Search */}
@@ -130,7 +158,15 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/6">
-              {filteredUsers.length > 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={4} className="py-12 text-center">
+                    <div className="flex justify-center">
+                      <Spinner size="md" />
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredUsers.length > 0 ? (
                 filteredUsers.map((user) => (
                   <tr
                     key={user.id}
@@ -236,7 +272,9 @@ export default function UsersPage() {
                     colSpan={4}
                     className="py-12 text-center text-text-secondary text-sm"
                   >
-                    No users found matching "{searchTerm}"
+                    {searchTerm
+                      ? `No users found matching "${searchTerm}"`
+                      : "No users found."}
                   </td>
                 </tr>
               )}
