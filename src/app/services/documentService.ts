@@ -38,6 +38,21 @@ export async function getPublicDocumentTree(): Promise<DocumentationNode[]> {
   return response.data.map(mapDocumentNode);
 }
 
+export async function getPublicDocumentBySlug(
+  slug: string
+): Promise<DocumentationNode> {
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/documents/slug/${slug}`
+  );
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch document");
+  }
+
+  const data = await response.json();
+
+  return mapDocumentNode(data);
+}
 export async function updateDocument(
   id: string,
   payload: object,
