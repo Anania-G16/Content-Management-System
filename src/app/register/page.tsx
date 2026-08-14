@@ -2,21 +2,60 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Eye, EyeOff, Lock, Mail, User } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-
+import { registerClient } from "../services/authService";
+import axios from "axios";
 export default function RegisterPage() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Registration submitted:", { name, email, password, confirmPassword });
+
+    setError("");
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      console.log("REGISTER PAYLOAD:", {
+        fullName: name,
+        email,
+        password,
+      });
+      await registerClient({
+        fullName: name,
+        email,
+        password,
+      });
+
+      router.push(`/register/verify-email?email=${encodeURIComponent(email)}`);
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        setError(
+          error.response?.data?.message ||
+            "Registration failed. Please try again.",
+        );
+      } else {
+        setError("Registration failed. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -64,12 +103,20 @@ export default function RegisterPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="p-3 rounded-md bg-danger/10 border border-danger/30 text-danger text-sm">
+                {error}
+              </div>
+            )}
             <div className="space-y-1.5">
               <label className="block text-xs font-medium text-text">
                 Full Name
               </label>
               <div className="relative flex items-center">
-                <User size={16} className="absolute left-3 text-text-secondary shrink-0" />
+                <User
+                  size={16}
+                  className="absolute left-3 text-text-secondary shrink-0"
+                />
                 <input
                   type="text"
                   required
@@ -86,7 +133,10 @@ export default function RegisterPage() {
                 Email Address
               </label>
               <div className="relative flex items-center">
-                <Mail size={16} className="absolute left-3 text-text-secondary shrink-0" />
+                <Mail
+                  size={16}
+                  className="absolute left-3 text-text-secondary shrink-0"
+                />
                 <input
                   type="email"
                   required
@@ -103,7 +153,10 @@ export default function RegisterPage() {
                 Password
               </label>
               <div className="relative flex items-center">
-                <Lock size={16} className="absolute left-3 text-text-secondary shrink-0" />
+                <Lock
+                  size={16}
+                  className="absolute left-3 text-text-secondary shrink-0"
+                />
                 <input
                   type={showPassword ? "text" : "password"}
                   required
@@ -128,7 +181,10 @@ export default function RegisterPage() {
                 Confirm Password
               </label>
               <div className="relative flex items-center">
-                <Lock size={16} className="absolute left-3 text-text-secondary shrink-0" />
+                <Lock
+                  size={16}
+                  className="absolute left-3 text-text-secondary shrink-0"
+                />
                 <input
                   type={showConfirmPassword ? "text" : "password"}
                   required
@@ -141,25 +197,35 @@ export default function RegisterPage() {
                   type="button"
                   onClick={() => setShowConfirmPassword((prev) => !prev)}
                   className="absolute right-3 text-text-secondary hover:text-text transition-colors"
-                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  aria-label={
+                    showConfirmPassword ? "Hide password" : "Show password"
+                  }
                 >
-                  {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showConfirmPassword ? (
+                    <EyeOff size={16} />
+                  ) : (
+                    <Eye size={16} />
+                  )}
                 </button>
               </div>
             </div>
 
             <button
               type="submit"
-              className="w-full py-2.5 px-4 text-sm font-medium rounded-md bg-primary text-primary-text hover:bg-primary-active transition-colors shadow-sm mt-2"
+              disabled={isLoading}
+              className="w-full py-2.5 px-4 text-sm font-medium rounded-md bg-primary text-primary-text hover:bg-primary-active transition-colors shadow-sm mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              Create Account
+              {isLoading ? "Creating Account..." : "Create Account"}
             </button>
           </form>
 
           <div className="text-center pt-2 border-t border-border">
             <p className="text-xs text-text-secondary">
               Already have an account?{" "}
-              <Link href="/login" className="text-text font-medium hover:underline">
+              <Link
+                href="/login"
+                className="text-text font-medium hover:underline"
+              >
                 Sign In
               </Link>
             </p>

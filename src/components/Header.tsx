@@ -3,9 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { BookOpen, Search } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
+  const { user, isAuthenticated } = useAuth();
 
   return (
     <header className="sticky top-0 z-40 h-16 w-full bg-[#1a1a1a]/80 backdrop-blur-md border-b border-border flex items-center justify-between px-4 sm:px-6">
@@ -22,7 +24,10 @@ export default function Header() {
       {/* Search Area */}
       <div className="flex-1 max-w-md mx-4 sm:mx-8">
         <div className="relative flex items-center">
-          <Search size={15} className="absolute left-3 text-text-secondary shrink-0" />
+          <Search
+            size={15}
+            className="absolute left-3 text-text-secondary shrink-0"
+          />
           <input
             type="text"
             value={searchQuery}
@@ -35,12 +40,22 @@ export default function Header() {
 
       {/* Authentication Area */}
       <div className="flex items-center gap-3 shrink-0">
-        <Link
-          href="/login"
-          className="px-3.5 py-1.5 text-xs sm:text-sm font-medium rounded-md bg-surface border border-border text-text hover:bg-white/5 hover:border-white/20 transition-colors"
-        >
-          Sign In
-        </Link>
+        {isAuthenticated && user ? (
+          <button
+            type="button"
+            className="w-9 h-9 rounded-full bg-zinc-800 border border-zinc-700 text-text flex items-center justify-center text-base font-semibold hover:bg-zinc-700 hover:border-zinc-600 transition-all duration-200"
+            title={user.fullName}
+          >
+            {user.fullName.charAt(0).toUpperCase()}
+          </button>
+        ) : (
+          <Link
+            href="/login"
+            className="px-3.5 py-1.5 text-xs sm:text-sm font-medium rounded-md bg-surface border border-border text-text hover:bg-white/5 hover:border-white/20 transition-colors"
+          >
+            Sign In
+          </Link>
+        )}
       </div>
     </header>
   );

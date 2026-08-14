@@ -134,42 +134,84 @@ export default function EditDocumentPage({
   };
 
   const handleSave = async () => {
-    if (!title.trim()) {
-      setError("Document title is required.");
-      return;
-    }
+  if (!title.trim()) {
+    setError("Document title is required.");
+    return;
+  }
 
-    setError("");
+  setError("");
 
-    const payload = {
-      // id: existingDoc.id,
-      title: title.trim(),
-      slug: generatedSlug,
-      parentId,
-      icon: parentId === null ? icon : null,
-      content: editorContent,
-    };
-
-    try {
-      await updateDocument(existingDoc.id, payload);
-
-      setSuccess(true);
-
-      setTimeout(() => {
-        router.push("/admin/docs");
-      }, 1200);
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        console.error("Update error:", error.response?.data);
-        console.error("Status:", error.response?.status);
-      } else {
-        console.error("Update error:", error);
-      }
-
-      setError("Failed to update document. Please try again.");
-    }
+  const payload = {
+    title: title.trim(),
+    slug: generatedSlug,
+    parentId,
+    icon: parentId === null ? icon : null,
+    content: editorContent,
+    status: existingDoc.status,
   };
 
+  try {
+    await updateDocument(existingDoc.id, payload);
+
+    setSuccess(true);
+
+    setTimeout(() => {
+      router.push("/admin/docs");
+    }, 1200);
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      console.log("UPDATE ERROR RESPONSE:", error.response?.data);
+      console.log("UPDATE ERROR STATUS:", error.response?.status);
+    } else {
+      console.log("UPDATE ERROR:", error);
+    }
+
+    setError("Failed to update document. Please try again.");
+  }
+};
+
+const handleStatusChange = async () => {
+  const newStatus =
+    existingDoc.status === "DRAFT" ? "PUBLISHED" : "DRAFT";
+
+  setError("");
+
+  const payload = {
+    title: existingDoc.title,
+    slug: existingDoc.slug,
+    parentId: existingDoc.parentId,
+    icon: existingDoc.parentId === null ? existingDoc.icon : null,
+    content: existingDoc.content,
+    status: newStatus,
+  };
+
+  try {
+    await updateDocument(existingDoc.id, payload);
+
+    setSuccess(
+      newStatus === "PUBLISHED"
+        ? true
+        : true,
+    );
+
+    setTimeout(() => {
+      router.push("/admin/docs");
+    }, 1200);
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      console.log("STATUS UPDATE ERROR RESPONSE:", error.response?.data);
+      console.log("STATUS UPDATE ERROR STATUS:", error.response?.status);
+    } else {
+      console.log("STATUS UPDATE ERROR:", error);
+    }
+
+    setError(
+      newStatus === "PUBLISHED"
+        ? "Failed to publish document. Please try again."
+        : "Failed to unpublish document. Please try again.",
+    );
+  }
+};
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 space-y-6">
       {/* Breadcrumbs & Title */}
@@ -260,21 +302,34 @@ export default function EditDocumentPage({
       </div>
 
       {/* Bottom Action Buttons */}
-      <div className="flex items-center justify-end gap-3 pt-2">
-        <Link
-          href="/admin/docs"
-          className="px-4 py-2 text-xs font-medium rounded-md border border-border text-text-secondary hover:text-text hover:bg-surface transition-colors"
-        >
-          Cancel
-        </Link>
-        <button
-          type="button"
-          onClick={handleSave}
-          className="px-4 py-2 text-xs font-medium rounded-md bg-primary text-text hover:bg-primary-active transition-colors"
-        >
-          Save Changes
-        </button>
-      </div>
+<div className="flex items-center justify-end gap-3 pt-2">
+  <Link
+    href="/admin/docs"
+    className="px-4 py-2 text-xs font-medium rounded-md border border-border text-text-secondary hover:text-text hover:bg-surface transition-colors"
+  >
+    Cancel
+  </Link>
+
+  <button
+    type="button"
+    onClick={handleSave}
+    className="px-4 py-2 text-xs font-medium rounded-md bg-primary text-text hover:bg-primary-active transition-colors"
+  >
+    Save Changes
+  </button>
+
+  <button
+    type="button"
+    onClick={handleStatusChange}
+    className={
+      existingDoc.status === "DRAFT"
+        ? "px-4 py-2 text-xs font-medium rounded-md bg-success text-text hover:bg-success/90 transition-colors"
+        : "px-4 py-2 text-xs font-medium rounded-md border border-danger/40 text-danger hover:bg-danger/10 transition-colors"
+    }
+  >
+    {existingDoc.status === "DRAFT" ? "Publish" : "Unpublish"}
+  </button>
+</div>
     </div>
   );
 }

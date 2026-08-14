@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Eye, EyeOff, Lock, Mail, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 
 interface LoginModalProps {
   isOpen?: boolean;
@@ -16,7 +17,7 @@ export default function LoginModal({
   onClose,
 }: LoginModalProps) {
   const router = useRouter();
-
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -38,7 +39,8 @@ export default function LoginModal({
       });
 
       console.log("Login successful:", response.data);
-      localStorage.setItem("accessToken", response.data.accessToken);
+
+      login(response.data.user, response.data.accessToken);
       if (response.data.user.role === "ADMIN") {
         router.push("/admin/dashboard");
       } else {
