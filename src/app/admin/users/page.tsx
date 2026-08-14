@@ -1,30 +1,44 @@
 "use client";
 
-import { useState } from "react";
-import { 
-  Search, 
-  MoreVertical, 
-  UserPlus, 
-  ShieldCheck, 
+import { useState, useEffect } from "react";
+import { getClients } from "@/app/services/userService";
+import {
+  Search,
+  MoreVertical,
+  UserPlus,
+  ShieldCheck,
   User as UserIcon,
   UserX,
   UserCheck,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
 } from "lucide-react";
 import { dummyUsers, User, UserRole } from "@/data/userData";
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<User[]>(dummyUsers);
+  const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+
+  useEffect(() => {
+  const fetchUsers = async () => {
+    try {
+      const data = await getClients();
+      setUsers(data);
+    } catch (error) {
+      console.error("Failed to fetch clients:", error);
+    }
+  };
+
+  fetchUsers();
+}, []);
 
   // Search filter matching name or email
   const filteredUsers = users.filter(
     (user) =>
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const toggleMenu = (userId: string) => {
@@ -35,8 +49,8 @@ export default function UsersPage() {
   const handleToggleDeactivate = (userId: string) => {
     setUsers((prevUsers) =>
       prevUsers.map((u) =>
-        u.id === userId ? { ...u, isDeactivated: !u.isDeactivated } : u
-      )
+        u.id === userId ? { ...u, isDeactivated: !u.isDeactivated } : u,
+      ),
     );
     setActiveMenuId(null);
   };
@@ -121,7 +135,9 @@ export default function UsersPage() {
                   <tr
                     key={user.id}
                     className={`transition-colors group ${
-                      user.isDeactivated ? "opacity-60 bg-white/1" : "hover:bg-white/2"
+                      user.isDeactivated
+                        ? "opacity-60 bg-white/1"
+                        : "hover:bg-white/2"
                     }`}
                   >
                     {/* User Name & Email */}
@@ -152,9 +168,7 @@ export default function UsersPage() {
                     </td>
 
                     {/* Role */}
-                    <td className="py-3.5 px-4">
-                      {getRoleBadge(user.role)}
-                    </td>
+                    <td className="py-3.5 px-4">{getRoleBadge(user.role)}</td>
 
                     {/* Joined Date */}
                     <td className="py-3.5 px-4 text-text-secondary text-xs">
@@ -239,13 +253,17 @@ export default function UsersPage() {
               <div className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/20">
                 <AlertTriangle size={20} />
               </div>
-              <h3 className="text-lg font-semibold text-text">Delete User Account</h3>
+              <h3 className="text-lg font-semibold text-text">
+                Delete User Account
+              </h3>
             </div>
 
             <p className="text-sm text-text-secondary leading-relaxed">
               Are you sure you want to permanently delete{" "}
-              <span className="font-semibold text-text">{userToDelete.name}</span> (
-              {userToDelete.email})? This action cannot be undone.
+              <span className="font-semibold text-text">
+                {userToDelete.name}
+              </span>{" "}
+              ({userToDelete.email})? This action cannot be undone.
             </p>
 
             <div className="flex items-center justify-end gap-3 pt-2">
