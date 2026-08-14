@@ -1,28 +1,17 @@
-"use client";
+import AdminGuard from "@/components/AdminGuard";
+import AdminSidebar from "@/components/AdminSidebar";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
-
-export default function AdminGuard({
+export default function DocumentationLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
-  const { user, isLoading } = useAuth();
-
-  useEffect(() => {
-    if (isLoading) return;
-
-    if (!user || user.role !== "ADMIN") {
-      router.replace("/docs");
-    }
-  }, [user, isLoading, router]);
-
-  if (isLoading || !user || user.role !== "ADMIN") {
-    return null;
-  }
-
-  return <>{children}</>;
+  return (
+    <AdminGuard>
+      <div className="flex min-h-screen">
+        <AdminSidebar />
+        <main className="flex-1 lg:pl-64 p-8">{children}</main>
+      </div>
+    </AdminGuard>
+  );
 }

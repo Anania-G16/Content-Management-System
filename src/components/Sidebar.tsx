@@ -1,13 +1,25 @@
 "use client";
 
-import { useState } from "react";
 import { Menu, X } from "lucide-react";
-import { dummyDocumentationTree } from "@/data/documentationData";
+import { useEffect, useState } from "react";
+import type { DocumentationNode } from "@/data/documentationTree";
 import DocTreeNode from "./DocTreeNode";
-
+import { getPublicDocumentTree } from "@/app/services/documentService";
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [documents, setDocuments] = useState<DocumentationNode[]>([]);
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const documents = await getPublicDocumentTree();
+        setDocuments(documents);
+      } catch (error) {
+        console.error("Failed to fetch documentation:", error);
+      }
+    };
 
+    fetchDocuments();
+  }, []);
   return (
     <>
       {/* Mobile Toggle Button */}
@@ -36,7 +48,7 @@ export default function Sidebar() {
         {/* Navigation Tree */}
         <nav className="flex-1 overflow-y-auto px-3 py-4">
           <ul className="space-y-1">
-            {dummyDocumentationTree.map((node) => (
+            {documents.map((node) => (
               <DocTreeNode
                 key={node.id}
                 node={node}

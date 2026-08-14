@@ -136,7 +136,6 @@ export default function NewDocumentPage() {
       icon: parentId === null ? icon : null,
       content: contentJson,
       parentId,
-      order: 1,
       status,
       accessLevel: accessType,
       allowedUsers: accessType === "PRIVATE" ? allowedUsers : [],

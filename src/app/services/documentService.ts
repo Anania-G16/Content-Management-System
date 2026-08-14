@@ -33,6 +33,11 @@ export async function getAdminDocumentTree(): Promise<DocumentationNode[]> {
   return response.data.map(mapDocumentNode);
 }
 
+export async function getPublicDocumentTree(): Promise<DocumentationNode[]> {
+  const response = await api.get("/api/documents/tree");
+  return response.data.map(mapDocumentNode);
+}
+
 export async function updateDocument(
   id: string,
   payload: object,
