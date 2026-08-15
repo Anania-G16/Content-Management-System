@@ -46,7 +46,7 @@ export default function DocsLandingPage() {
       </div>
 
       {/* Encouraging Closing Banner */}
-      <div className="p-6 rounded-xl bg-gradient-to-r from-surface via-surface to-accent/10 border border-border flex items-start sm:items-center gap-4">
+      <div className="p-6 rounded-xl bg-linear-to-r from-surface via-surface to-accent/10 border border-border flex items-start sm:items-center gap-4">
         <div className="p-3 rounded-lg bg-primary/10 text-primary shrink-0 hidden sm:block">
           <BookOpen size={24} />
         </div>
