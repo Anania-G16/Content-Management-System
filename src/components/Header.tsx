@@ -1,43 +1,123 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { BookOpen, Search, User, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { BookOpen, Search, User, LogOut, LayoutDashboard, FileText } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { getPublicDocumentTree } from "@/app/services/documentService";
+import type { DocumentationNode } from "@/data/documentationTree";
+
+interface FlattenedDoc {
+  id: string;
+  title: string;
+  slug: string;
+  path: string;
+  url: string;
+}
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [docTree, setDocTree] = useState<DocumentationNode[]>([]);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  const router = useRouter();
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside or pressing Escape
+  // Fetch documentation tree on component mount
+  useEffect(() => {
+    let isMounted = true;
+    getPublicDocumentTree()
+      .then((tree) => {
+        if (isMounted && tree) {
+          setDocTree(tree);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load documentation search index:", err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Recursively flatten tree into searchable document list with hierarchy paths and URLs
+  const flattenedDocs = useMemo(() => {
+    const results: FlattenedDoc[] = [];
+
+    function traverse(node: DocumentationNode, parentPath: string[], parentSlugs: string[]) {
+      const currentPath = [...parentPath, node.title];
+      const currentSlugs = [...parentSlugs, node.slug];
+      const url = `/docs/${currentSlugs.join("/")}`;
+
+      results.push({
+        id: node.id,
+        title: node.title,
+        slug: node.slug,
+        path: currentPath.join(" / "),
+        url,
+      });
+
+      if (node.children && node.children.length > 0) {
+        node.children.forEach((child) => traverse(child, currentPath, currentSlugs));
+      }
+    }
+
+    docTree.forEach((node) => traverse(node, [], []));
+    return results;
+  }, [docTree]);
+
+  // Filter documents based on searchQuery
+  const searchResults = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return [];
+    return flattenedDocs.filter((doc) =>
+      doc.title.toLowerCase().includes(query)
+    );
+  }, [searchQuery, flattenedDocs]);
+
+  // Handle click outside and escape keys for profile and search dropdowns
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        profileDropdownRef.current &&
+        !profileDropdownRef.current.contains(event.target as Node)
       ) {
         setIsProfileOpen(false);
+      }
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setIsSearchOpen(false);
       }
     }
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setIsProfileOpen(false);
+        setIsSearchOpen(false);
       }
     }
 
-    if (isProfileOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("keydown", handleKeyDown);
-    }
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isProfileOpen]);
+  }, []);
+
+  const handleSelectDoc = (url: string) => {
+    setIsSearchOpen(false);
+    setSearchQuery("");
+    router.push(url);
+  };
 
   return (
     <header className="sticky top-0 z-40 h-16 w-full bg-[#1a1a1a]/80 backdrop-blur-md border-b border-border flex items-center justify-between px-4 sm:px-6">
@@ -52,7 +132,7 @@ export default function Header() {
       </Link>
 
       {/* Search Area */}
-      <div className="flex-1 max-w-md mx-4 sm:mx-8">
+      <div className="flex-1 max-w-md mx-4 sm:mx-8 relative" ref={searchContainerRef}>
         <div className="relative flex items-center">
           <Search
             size={15}
@@ -61,15 +141,55 @@ export default function Header() {
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setIsSearchOpen(true);
+            }}
+            onFocus={() => setIsSearchOpen(true)}
             placeholder="Search documentation..."
             className="w-full pl-9 pr-3 py-1.5 text-sm rounded-md bg-surface border border-border text-text placeholder:text-text-secondary focus:outline-none focus:ring-1 focus:ring-primary/50 transition-colors"
           />
         </div>
+
+        {/* Search Results Dropdown */}
+        {isSearchOpen && searchQuery.trim().length > 0 && (
+          <div className="absolute left-0 right-0 top-full mt-2 rounded-lg bg-surface border border-border shadow-2xl p-1.5 text-text z-50 max-h-80 overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-150">
+            {searchResults.length > 0 ? (
+              <ul className="space-y-0.5">
+                {searchResults.map((doc) => (
+                  <li key={doc.id}>
+                    <button
+                      type="button"
+                      onClick={() => handleSelectDoc(doc.url)}
+                      className="w-full text-left px-3 py-2 rounded-md hover:bg-white/5 transition-colors group flex items-start gap-2.5"
+                    >
+                      <FileText
+                        size={16}
+                        className="text-text-secondary group-hover:text-primary shrink-0 mt-0.5 transition-colors"
+                      />
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <span className="text-sm font-medium text-text group-hover:text-primary transition-colors truncate">
+                          {doc.title}
+                        </span>
+                        <span className="text-xs text-text-secondary truncate font-mono">
+                          {doc.path}
+                        </span>
+                      </div>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="px-3 py-4 text-center text-sm text-text-secondary">
+                No documents found matching &quot;{searchQuery}&quot;
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Authentication Area */}
-      <div className="flex items-center gap-3 shrink-0 relative" ref={dropdownRef}>
+      <div className="flex items-center gap-3 shrink-0 relative" ref={profileDropdownRef}>
         {isAuthenticated && user ? (
           <>
             <button
@@ -110,6 +230,17 @@ export default function Header() {
 
                 {/* Navigation & Actions */}
                 <div className="space-y-0.5">
+                  {user.role === "ADMIN" && (
+                    <Link
+                      href="/admin"
+                      onClick={() => setIsProfileOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-md text-text-secondary hover:text-text hover:bg-white/5 transition-colors"
+                    >
+                      <LayoutDashboard size={16} />
+                      <span>Admin Dashboard</span>
+                    </Link>
+                  )}
+
                   <Link
                     href="/profile"
                     onClick={() => setIsProfileOpen(false)}

@@ -7,11 +7,11 @@ import {
   LayoutDashboard,
   FileText,
   Users,
-  LogOut,
   ShieldCheck,
   Menu,
   X,
   ChevronRight,
+  BookOpen,
 } from "lucide-react";
 
 const adminNavItems = [
@@ -116,18 +116,16 @@ export default function AdminSidebar() {
           </div>
         </nav>
 
-        {/* Footer / Logout Button */}
+        {/* Footer / Back to Docs Link */}
         <div className="p-4 border-t border-border shrink-0">
-          <button
-            onClick={() => {
-              setIsOpen(false);
-              // Handle logout logic here
-            }}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-danger hover:bg-danger/10 transition-colors"
+          <Link
+            href="/docs"
+            onClick={() => setIsOpen(false)}
+            className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium border border-transparent text-text-secondary hover:bg-accent/20 hover:text-text transition-colors"
           >
-            <LogOut size={18} />
-            <span>Logout</span>
-          </button>
+            <BookOpen size={18} />
+            <span>Back to Docs</span>
+          </Link>
         </div>
       </aside>
     </>

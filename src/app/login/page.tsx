@@ -41,11 +41,8 @@ export default function LoginModal({
       console.log("Login successful:", response.data);
 
       login(response.data.user, response.data.accessToken);
-      if (response.data.user.role === "ADMIN") {
-        router.push("/admin/dashboard");
-      } else {
-        router.push("/docs");
-      }
+
+      router.push("/docs");
     } catch (error) {
       console.error("Login failed:", error);
 
