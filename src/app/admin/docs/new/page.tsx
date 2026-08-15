@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 import {
   ChevronRight,
   Globe,
@@ -28,13 +29,14 @@ export default function NewDocumentPage() {
   const searchParams = useSearchParams();
   const initialParentId = searchParams.get("parentId");
   const [documents, setDocuments] = useState<DocumentationNode[]>([]);
-
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  
   // Form State
   const [title, setTitle] = useState("");
   const [parentId, setParentId] = useState<string | null>(initialParentId);
   const [icon, setIcon] = useState<string | null>("BookOpen");
   const [contentJson, setContentJson] = useState<object | null>(null);
-
+  
   // Access Control State
   const [accessType, setAccessType] = useState<"PUBLIC" | "CLIENT" | "PRIVATE">(
     "CLIENT",
@@ -42,12 +44,10 @@ export default function NewDocumentPage() {
   const [allowedUsers, setAllowedUsers] = useState<string[]>([]);
   const [userSearchQuery, setUserSearchQuery] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
+  
   // Errors & Status
   const [titleError, setTitleError] = useState("");
   const [contentError, setContentError] = useState("");
-  const [submittedPayload, setSubmittedPayload] = useState<object | null>(null);
-  const [submitError, setSubmitError] = useState("");
 
   // Parent selection handler with icon state logic
   const handleParentSelect = (newParentId: string | null) => {
@@ -115,8 +115,6 @@ export default function NewDocumentPage() {
 
     setTitleError("");
     setContentError("");
-    setSubmitError("");
-    setSubmittedPayload(null);
 
     if (!title.trim()) {
       setTitleError("Document title is required.");
@@ -143,34 +141,34 @@ export default function NewDocumentPage() {
 
     try {
       const response = await api.post("/api/documents", payload);
-
+      setIsSubmitted(true);
       console.log("Document created:", response.data);
-      setSubmittedPayload(response.data);
+      toast.success("Document created successfully!");
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
         const statusCode = error.response?.status;
 
         if (statusCode === 409) {
-          setSubmitError(
+          toast.error(
             "A document with this name already exists. Please choose a different title.",
           );
         } else if (statusCode === 401) {
-          setSubmitError(
+          toast.error(
             "You are not authorized to create documents. Please log in again.",
           );
         } else if (statusCode === 400) {
-          setSubmitError(
+          toast.error(
             "The document information is invalid. Please check your fields and try again.",
           );
         } else {
-          setSubmitError(
+          toast.error(
             "Something went wrong while creating the document. Please try again.",
           );
         }
 
         console.error("Failed to create document:", error.response?.data);
       } else {
-        setSubmitError(
+        toast.error(
           "Something went wrong while creating the document. Please try again.",
         );
 
@@ -204,25 +202,8 @@ export default function NewDocumentPage() {
         </p>
       </div>
 
-      {/* Error Notification Banner */}
-      {submitError && (
-        <div className="p-4 rounded-md bg-danger/10 border border-danger/20 text-danger text-sm">
-          {submitError}
-        </div>
-      )}
-
-      {/* Success Notification Banner */}
-      {submittedPayload && (
-        <div className="p-4 rounded-md bg-success/10 border border-success/20 text-success space-y-2">
-          <div className="flex items-center gap-2 font-semibold text-sm">
-            <CheckCircle2 size={16} />
-            <span>Document created successfully</span>
-          </div>
-          <pre className="text-xs bg-background/50 p-3 rounded text-text overflow-x-auto font-mono">
-            {JSON.stringify(submittedPayload, null, 2)}
-          </pre>
-        </div>
-      )}
+      
+    
 
       {/* Main Form */}
       <form className="space-y-6">
