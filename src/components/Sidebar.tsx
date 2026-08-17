@@ -7,6 +7,7 @@ import DocTreeNode from "./DocTreeNode";
 import {
   getPublicDocumentTree,
   getClientDocumentTree,
+  getAdminDocumentTree
 } from "@/app/services/documentService";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import { useAuth } from "@/context/AuthContext";
@@ -33,16 +34,17 @@ export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [documents, setDocuments] = useState<DocumentationNode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
-
+  const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   useEffect(() => {
     if (isAuthLoading) return;
 
     const fetchDocuments = async () => {
       try {
-        const documents = isAuthenticated
-          ? await getClientDocumentTree()
-          : await getPublicDocumentTree();
+        const documents = user?.role === "ADMIN"
+  ? await getAdminDocumentTree()
+  : isAuthenticated
+    ? await getClientDocumentTree()
+    : await getPublicDocumentTree();
 
         setDocuments(documents);
       } catch (error) {

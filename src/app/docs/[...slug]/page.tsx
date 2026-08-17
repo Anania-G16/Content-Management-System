@@ -3,6 +3,7 @@ import { use, useEffect, useState } from "react";
 import {
   getPublicDocumentBySlug,
   getClientDocumentBySlug,
+  getAdminDocumentBySlug
 } from "@/app/services/documentService";
 import DocumentRenderer from "@/components/DocumentRenderer";
 import { useAuth } from "@/context/AuthContext";
@@ -20,8 +21,7 @@ export default function DocCatchAllPage({ params }: PageProps) {
   const { slug } = use(params);
   const documentSlug = slug[slug.length - 1];
 
-  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
-
+  const { user, isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const [document, setDocument] = useState<DocumentationNode | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -30,10 +30,12 @@ export default function DocCatchAllPage({ params }: PageProps) {
 
     const fetchDocument = async () => {
       try {
-        const data = isAuthenticated
-          ? await getClientDocumentBySlug(documentSlug)
-          : await getPublicDocumentBySlug(documentSlug);
-
+        const data =
+          user?.role === "ADMIN"
+            ? await getAdminDocumentBySlug(documentSlug)
+            : isAuthenticated
+              ? await getClientDocumentBySlug(documentSlug)
+              : await getPublicDocumentBySlug(documentSlug);
         setDocument(data);
       } catch (error) {
         console.error("Failed to fetch document:", error);

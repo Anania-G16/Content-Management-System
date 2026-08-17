@@ -69,6 +69,13 @@ export async function getClientDocumentBySlug(
   return mapDocumentNode(response.data);
 }
 
+export async function getAdminDocumentBySlug(
+  slug: string,
+): Promise<DocumentationNode> {
+  const response = await api.get(`/api/documents/admin/slug/${slug}`);
+  return mapDocumentNode(response.data);
+}
+
 export async function updateDocument(id: string, payload: object) {
   const response = await api.patch(`/api/documents/${id}`, payload);
   return response.data;
