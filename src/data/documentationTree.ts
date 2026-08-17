@@ -8,6 +8,7 @@ export type DocumentationNode = {
   children?: DocumentationNode[];
 
    status?: "DRAFT" | "PUBLISHED";
+    accessLevel?: "PUBLIC" | "CLIENT" | "PRIVATE";
   updatedAt?: string;
 };
 

@@ -29,6 +29,11 @@ export async function getClients(): Promise<User[]> {
   return response.data.map(mapClient);
 }
 
+export async function getDocumentPermissions(documentId: string) {
+  const response = await api.get(`/api/documents/${documentId}/permissions`);
+  return response.data;
+}
+
 export async function updateUserStatus(id: string, isActive: boolean) {
   const response = await api.patch(`/api/users/${id}/status`, {
     isActive,

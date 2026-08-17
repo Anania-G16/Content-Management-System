@@ -1,6 +1,7 @@
 import api from "@/lib/api";
 import { DocumentationNode } from "@/data/documentationTree";
 
+
 type ApiDocumentNode = {
   _id: string;
   title: string;
@@ -11,6 +12,7 @@ type ApiDocumentNode = {
   status?: "DRAFT" | "PUBLISHED";
   updatedAt?: string;
   children?: ApiDocumentNode[];
+  accessLevel?: "PUBLIC" | "CLIENT" | "PRIVATE";
 };
 
 const mapDocumentNode = (node: ApiDocumentNode): DocumentationNode => {
@@ -23,6 +25,7 @@ const mapDocumentNode = (node: ApiDocumentNode): DocumentationNode => {
     content: node.content,
     status: node.status,
     updatedAt: node.updatedAt,
+    accessLevel: node.accessLevel,
     children: node.children?.map(mapDocumentNode),
   };
 };
