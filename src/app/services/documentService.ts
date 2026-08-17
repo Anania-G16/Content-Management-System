@@ -38,6 +38,11 @@ export async function getPublicDocumentTree(): Promise<DocumentationNode[]> {
   return response.data.map(mapDocumentNode);
 }
 
+export async function getClientDocumentTree(): Promise<DocumentationNode[]> {
+  const response = await api.get("/api/documents/client/tree");
+  return response.data.map(mapDocumentNode);
+}
+
 export async function getPublicDocumentBySlug(
   slug: string
 ): Promise<DocumentationNode> {

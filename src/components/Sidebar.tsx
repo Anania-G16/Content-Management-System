@@ -4,8 +4,12 @@ import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { DocumentationNode } from "@/data/documentationTree";
 import DocTreeNode from "./DocTreeNode";
-import { getPublicDocumentTree } from "@/app/services/documentService";
+import {
+  getPublicDocumentTree,
+  getClientDocumentTree,
+} from "@/app/services/documentService";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import { useAuth } from "@/context/AuthContext";
 import "react-loading-skeleton/dist/skeleton.css";
 
 const SKELETON_TREE_ITEMS = [
@@ -13,30 +17,33 @@ const SKELETON_TREE_ITEMS = [
   { level: 1, width: "60%", hasChevron: false },
   { level: 1, width: "65%", hasChevron: false },
   { level: 1, width: "50%", hasChevron: false },
-  
-  
+
   { level: 0, width: "75%", hasChevron: true },
   { level: 1, width: "55%", hasChevron: true },
   { level: 2, width: "45%", hasChevron: false },
   { level: 2, width: "60%", hasChevron: false },
   { level: 1, width: "68%", hasChevron: false },
 
-  
   { level: 0, width: "80%", hasChevron: true },
   { level: 1, width: "58%", hasChevron: false },
   { level: 1, width: "62%", hasChevron: false },
-
 ];
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [documents, setDocuments] = useState<DocumentationNode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
   useEffect(() => {
+    if (isAuthLoading) return;
+
     const fetchDocuments = async () => {
       try {
-        const documents = await getPublicDocumentTree();
+        const documents = isAuthenticated
+          ? await getClientDocumentTree()
+          : await getPublicDocumentTree();
+
         setDocuments(documents);
       } catch (error) {
         console.error("Failed to fetch documentation:", error);
@@ -46,7 +53,7 @@ export default function Sidebar() {
     };
 
     fetchDocuments();
-  }, []);
+  }, [isAuthenticated, isAuthLoading]);
 
   return (
     <>
