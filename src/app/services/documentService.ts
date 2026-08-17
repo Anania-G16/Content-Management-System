@@ -44,10 +44,10 @@ export async function getClientDocumentTree(): Promise<DocumentationNode[]> {
 }
 
 export async function getPublicDocumentBySlug(
-  slug: string
+  slug: string,
 ): Promise<DocumentationNode> {
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/documents/slug/${slug}`
+    `${process.env.NEXT_PUBLIC_API_URL}/api/documents/slug/${slug}`,
   );
 
   if (!response.ok) {
@@ -58,10 +58,15 @@ export async function getPublicDocumentBySlug(
 
   return mapDocumentNode(data);
 }
-export async function updateDocument(
-  id: string,
-  payload: object,
-) {
+
+export async function getClientDocumentBySlug(
+  slug: string,
+): Promise<DocumentationNode> {
+  const response = await api.get(`/api/documents/client/slug/${slug}`);
+  return mapDocumentNode(response.data);
+}
+
+export async function updateDocument(id: string, payload: object) {
   const response = await api.patch(`/api/documents/${id}`, payload);
   return response.data;
 }
