@@ -5,6 +5,8 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import { User } from "@/data/userData";
+import { getClients } from "@/app/services/userService";
 import {
   ChevronRight,
   Globe,
@@ -19,7 +21,6 @@ import ParentDocumentSelector, {
 import DocumentEditor from "@/components/DocumentEditor";
 import IconSelector from "@/components/IconSelector";
 import { DocumentationNode } from "@/data/documentationTree";
-import { dummyUsers } from "@/data/userData";
 import api from "@/lib/api";
 import axios from "axios";
 import { getAdminDocumentTree } from "@/app/services/documentService";
@@ -30,6 +31,7 @@ export default function NewDocumentPage() {
   const initialParentId = searchParams.get("parentId");
   const [documents, setDocuments] = useState<DocumentationNode[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [clients, setClients] = useState<User[]>([]);
   
   // Form State
   const [title, setTitle] = useState("");
@@ -80,12 +82,25 @@ export default function NewDocumentPage() {
     fetchDocuments();
   }, []);
 
+  useEffect(() => {
+  const fetchClients = async () => {
+    try {
+      const data = await getClients();
+      setClients(data);
+    } catch (error) {
+      console.error("Failed to fetch clients:", error);
+    }
+  };
+
+  fetchClients();
+}, []);
+
   // Build full route path for preview
   const parentPathSegments = findNodePath(documents, parentId);
   const fullPreviewUrl = `/docs/${[...parentPathSegments, generatedSlug || "new-document"].join("/")}`;
 
   // Filter users based on search input
-  const filteredUsers = dummyUsers.filter((user) => {
+  const filteredUsers = clients.filter((user) => {
     const query = userSearchQuery.toLowerCase();
     return (
       user.name.toLowerCase().includes(query) ||
@@ -378,7 +393,7 @@ export default function NewDocumentPage() {
                   <span className="text-xs text-text-secondary">Selected:</span>
                   <div className="flex flex-wrap gap-1.5">
                     {allowedUsers.map((id) => {
-                      const user = dummyUsers.find((u) => u.id === id);
+                      const user = clients.find((u) => u.id === id);
                       if (!user) return null;
                       return (
                         <span
