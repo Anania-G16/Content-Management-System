@@ -6,7 +6,7 @@ import { Eye, EyeOff, Lock, Mail, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-
+import axios from "axios";
 interface LoginModalProps {
   isOpen?: boolean;
   onClose?: () => void;
@@ -43,10 +43,15 @@ export default function LoginModal({
       login(response.data.user, response.data.accessToken);
 
       router.push("/docs");
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Login failed:", error);
 
-      setError("Invalid email or password.");
+      if (axios.isAxiosError(error)) {
+        console.log("Backend error:", error.response?.data);
+      }
+      if (axios.isAxiosError(error)) {
+        setError(error.response?.data?.message || "Invalid email or password.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -80,6 +85,11 @@ export default function LoginModal({
           </p>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="rounded-md border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+              {error}
+            </div>
+          )}
           <div className="space-y-1.5">
             <label className="block text-xs font-medium text-text">
               Email Address

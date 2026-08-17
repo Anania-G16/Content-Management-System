@@ -528,32 +528,35 @@ export default function EditDocumentPage({
       </div>
 
       {/* Bottom Action Buttons */}
-      <div className="flex items-center justify-end gap-3 pt-2">
+      <div className="flex items-center justify-end gap-3 pt-4 border-t border-border/50">
+        {/* Secondary Action: Cancel */}
         <Link
           href="/admin/docs"
-          className="px-4 py-2 text-xs font-medium rounded-md border border-border text-text-secondary hover:text-text hover:bg-surface transition-colors"
+          className="px-4 py-2 text-xs font-medium rounded-md text-text-secondary hover:text-text bg-background hover:bg-surface border border-border transition-all"
         >
           Cancel
         </Link>
 
-        <button
-          type="button"
-          onClick={handleSave}
-          className="px-4 py-2 text-xs font-medium rounded-md bg-primary text-text hover:bg-primary-active transition-colors"
-        >
-          Save Changes
-        </button>
-
+        {/* Neutral/Destructive Secondary Action: Unpublish / Publish */}
         <button
           type="button"
           onClick={handleStatusChange}
           className={
             existingDoc.status === "DRAFT"
-              ? "px-4 py-2 text-xs font-medium rounded-md bg-success text-text hover:bg-success/90 transition-colors"
-              : "px-4 py-2 text-xs font-medium rounded-md border border-danger/40 text-danger hover:bg-danger/10 transition-colors"
+              ? "px-4 py-2 text-xs font-medium rounded-md bg-emerald-600/90 text-white hover:bg-emerald-600 transition-colors shadow-sm"
+              : "px-4 py-2 text-xs font-medium rounded-md bg-surface text-text-secondary hover:text-danger hover:bg-danger/10 border border-border hover:border-danger/20 transition-all"
           }
         >
-          {existingDoc.status === "DRAFT" ? "Publish" : "Unpublish"}
+          {existingDoc.status === "DRAFT" ? "Publish Document" : "Unpublish"}
+        </button>
+
+        {/* Primary Action: Save */}
+        <button
+          type="button"
+          onClick={handleSave}
+          className="px-4 py-2 text-xs font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary-active transition-colors shadow-sm"
+        >
+          Save Changes
         </button>
       </div>
     </div>

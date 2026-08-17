@@ -19,3 +19,22 @@ export async function changePassword(payload: ChangePasswordPayload) {
   const response = await api.post("/api/auth/change-password", payload);
   return response.data;
 }
+
+type ForgotPasswordPayload = {
+  email: string;
+};
+
+export async function forgotPassword(payload: ForgotPasswordPayload) {
+  const response = await api.post("/api/auth/forgot-password", payload);
+  return response.data;
+}
+
+type ResetPasswordPayload = {
+  token: string;
+  newPassword: string;
+};
+
+export async function resetPassword(payload: ResetPasswordPayload) {
+  const response = await api.post("/api/auth/reset-password", payload);
+  return response.data;
+}
