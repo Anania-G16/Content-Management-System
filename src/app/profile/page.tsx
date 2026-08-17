@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import { changePassword } from "../services/authService";
+import { toast } from "react-toastify";
+import axios from "axios";
 import {
   User,
   Mail,
@@ -35,6 +38,7 @@ export default function ProfilePage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   // Password Visibility Toggles
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -87,27 +91,29 @@ export default function ProfilePage() {
 
   // Safely format dates with fallback strings if the backend hasn't supplied them yet
   const createdAtFormatted = (user as { createdAt?: string }).createdAt
-    ? new Date((user as { createdAt?: string }).createdAt!).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
+    ? new Date((user as { createdAt?: string }).createdAt!).toLocaleDateString(
+        "en-US",
+        {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        },
+      )
     : "N/A";
 
   const updatedAtFormatted = (user as { updatedAt?: string }).updatedAt
-    ? new Date((user as { updatedAt?: string }).updatedAt!).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
+    ? new Date((user as { updatedAt?: string }).updatedAt!).toLocaleDateString(
+        "en-US",
+        {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        },
+      )
     : "N/A";
 
   // Client-side Validation Logic
-  const validate = (
-    current: string,
-    newPass: string,
-    confirmPass: string
-  ) => {
+  const validate = (current: string, newPass: string, confirmPass: string) => {
     const newErrors: {
       currentPassword?: string;
       newPassword?: string;
@@ -133,30 +139,59 @@ export default function ProfilePage() {
     return newErrors;
   };
 
-  const handleBlur = (field: "currentPassword" | "newPassword" | "confirmPassword") => {
+  const handleBlur = (
+    field: "currentPassword" | "newPassword" | "confirmPassword",
+  ) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
     setErrors(validate(currentPassword, newPassword, confirmPassword));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    setTouched({
-      currentPassword: true,
-      newPassword: true,
-      confirmPassword: true,
+  setTouched({
+    currentPassword: true,
+    newPassword: true,
+    confirmPassword: true,
+  });
+
+  const validationErrors = validate(
+    currentPassword,
+    newPassword,
+    confirmPassword,
+  );
+
+  setErrors(validationErrors);
+
+  if (Object.keys(validationErrors).length > 0) {
+    return;
+  }
+
+  setIsChangingPassword(true);
+
+  try {
+    await changePassword({
+      currentPassword,
+      newPassword,
+      confirmPassword,
     });
 
-    const validationErrors = validate(currentPassword, newPassword, confirmPassword);
-    setErrors(validationErrors);
+    toast.success("Password changed successfully.");
+  } catch (error: unknown) {
+    console.error("Failed to change password:", error);
 
-    if (Object.keys(validationErrors).length > 0) {
-      return;
+    if (axios.isAxiosError(error)) {
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to change password. Please try again.",
+      );
+    } else {
+      toast.error("Something went wrong. Please try again.");
     }
-
-    // Client-only handler without endpoint invocation
-    console.log("Password change submitted locally (Backend pending)");
-  };
+  } finally {
+    setIsChangingPassword(false);
+  }
+};
 
   const handleSavePersonalInfo = () => {
     // Client-only handler placeholder without endpoint invocation
@@ -164,18 +199,19 @@ export default function ProfilePage() {
     console.log("Updated Full Name locally (Backend pending):", fullName);
   };
 
-  const isNameChanged = fullName.trim() !== (user.fullName || "") && fullName.trim().length > 0;
+  const isNameChanged =
+    fullName.trim() !== (user.fullName || "") && fullName.trim().length > 0;
 
   const isFormInvalid =
     !currentPassword ||
     !newPassword ||
     !confirmPassword ||
-    Object.keys(validate(currentPassword, newPassword, confirmPassword)).length > 0;
+    Object.keys(validate(currentPassword, newPassword, confirmPassword))
+      .length > 0;
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-background text-text px-6 sm:px-8 lg:px-10 py-6">
       <div className="w-full max-w-6xl mx-auto space-y-6">
-
         {/* Minimal YGS Docs Brand Header */}
         <div className="flex items-center justify-between pb-2 border-b border-border/60">
           <Link
@@ -190,7 +226,7 @@ export default function ProfilePage() {
             </span>
           </Link>
         </div>
-        
+
         {/* Profile Header */}
         <div className="bg-surface border border-border rounded-lg p-6 flex flex-col sm:flex-row items-center sm:items-start gap-5 shadow-sm">
           <div className="w-20 h-20 rounded-full bg-zinc-800 border-2 border-zinc-700 flex items-center justify-center text-2xl font-bold text-text shrink-0">
@@ -278,13 +314,20 @@ export default function ProfilePage() {
               <div className="flex items-center gap-2 px-3 py-2 text-sm rounded-md bg-background/50 border border-border/60">
                 {user.isEmailVerified ? (
                   <>
-                    <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
-                    <span className="text-emerald-400 font-medium">Verified</span>
+                    <CheckCircle2
+                      size={15}
+                      className="text-emerald-500 shrink-0"
+                    />
+                    <span className="text-emerald-400 font-medium">
+                      Verified
+                    </span>
                   </>
                 ) : (
                   <>
                     <XCircle size={15} className="text-rose-500 shrink-0" />
-                    <span className="text-rose-400 font-medium">Unverified</span>
+                    <span className="text-rose-400 font-medium">
+                      Unverified
+                    </span>
                   </>
                 )}
               </div>
@@ -298,7 +341,10 @@ export default function ProfilePage() {
               <div className="flex items-center gap-2 px-3 py-2 text-sm rounded-md bg-background/50 border border-border/60">
                 {user.isActive ? (
                   <>
-                    <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
+                    <CheckCircle2
+                      size={15}
+                      className="text-emerald-500 shrink-0"
+                    />
                     <span className="text-emerald-400 font-medium">Active</span>
                   </>
                 ) : (
@@ -332,10 +378,17 @@ export default function ProfilePage() {
             </h2>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 max-w-md pt-1" noValidate>
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-4 max-w-md pt-1"
+            noValidate
+          >
             {/* Current Password */}
             <div>
-              <label htmlFor="current-password" className="block text-xs font-medium text-text-secondary mb-1.5">
+              <label
+                htmlFor="current-password"
+                className="block text-xs font-medium text-text-secondary mb-1.5"
+              >
                 Current Password
               </label>
               <div className="relative">
@@ -347,7 +400,9 @@ export default function ProfilePage() {
                   onChange={(e) => {
                     setCurrentPassword(e.target.value);
                     if (touched.currentPassword) {
-                      setErrors(validate(e.target.value, newPassword, confirmPassword));
+                      setErrors(
+                        validate(e.target.value, newPassword, confirmPassword),
+                      );
                     }
                   }}
                   onBlur={() => handleBlur("currentPassword")}
@@ -361,10 +416,18 @@ export default function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                  aria-label={showCurrentPassword ? "Hide current password" : "Show current password"}
+                  aria-label={
+                    showCurrentPassword
+                      ? "Hide current password"
+                      : "Show current password"
+                  }
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text focus:outline-none transition-colors"
                 >
-                  {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showCurrentPassword ? (
+                    <EyeOff size={16} />
+                  ) : (
+                    <Eye size={16} />
+                  )}
                 </button>
               </div>
               {touched.currentPassword && errors.currentPassword && (
@@ -377,7 +440,10 @@ export default function ProfilePage() {
 
             {/* New Password */}
             <div>
-              <label htmlFor="new-password" className="block text-xs font-medium text-text-secondary mb-1.5">
+              <label
+                htmlFor="new-password"
+                className="block text-xs font-medium text-text-secondary mb-1.5"
+              >
                 New Password
               </label>
               <div className="relative">
@@ -389,7 +455,13 @@ export default function ProfilePage() {
                   onChange={(e) => {
                     setNewPassword(e.target.value);
                     if (touched.newPassword) {
-                      setErrors(validate(currentPassword, e.target.value, confirmPassword));
+                      setErrors(
+                        validate(
+                          currentPassword,
+                          e.target.value,
+                          confirmPassword,
+                        ),
+                      );
                     }
                   }}
                   onBlur={() => handleBlur("newPassword")}
@@ -403,7 +475,9 @@ export default function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => setShowNewPassword(!showNewPassword)}
-                  aria-label={showNewPassword ? "Hide new password" : "Show new password"}
+                  aria-label={
+                    showNewPassword ? "Hide new password" : "Show new password"
+                  }
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text focus:outline-none transition-colors"
                 >
                   {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -419,7 +493,10 @@ export default function ProfilePage() {
 
             {/* Confirm New Password */}
             <div>
-              <label htmlFor="confirm-password" className="block text-xs font-medium text-text-secondary mb-1.5">
+              <label
+                htmlFor="confirm-password"
+                className="block text-xs font-medium text-text-secondary mb-1.5"
+              >
                 Confirm New Password
               </label>
               <div className="relative">
@@ -431,7 +508,9 @@ export default function ProfilePage() {
                   onChange={(e) => {
                     setConfirmPassword(e.target.value);
                     if (touched.confirmPassword) {
-                      setErrors(validate(currentPassword, newPassword, e.target.value));
+                      setErrors(
+                        validate(currentPassword, newPassword, e.target.value),
+                      );
                     }
                   }}
                   onBlur={() => handleBlur("confirmPassword")}
@@ -445,10 +524,18 @@ export default function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                  aria-label={
+                    showConfirmPassword
+                      ? "Hide confirm password"
+                      : "Show confirm password"
+                  }
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text focus:outline-none transition-colors"
                 >
-                  {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showConfirmPassword ? (
+                    <EyeOff size={16} />
+                  ) : (
+                    <Eye size={16} />
+                  )}
                 </button>
               </div>
               {touched.confirmPassword && errors.confirmPassword && (
@@ -461,7 +548,7 @@ export default function ProfilePage() {
 
             <button
               type="submit"
-              disabled={isFormInvalid}
+              disabled={isFormInvalid || isChangingPassword}
               className="rounded-md bg-primary py-2 px-4 text-sm font-semibold text-background hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Update Password
@@ -483,7 +570,9 @@ export default function ProfilePage() {
               <Calendar size={16} className="text-text-secondary shrink-0" />
               <div>
                 <p className="text-xs text-text-secondary">Account Created</p>
-                <p className="text-sm font-medium text-text">{createdAtFormatted}</p>
+                <p className="text-sm font-medium text-text">
+                  {createdAtFormatted}
+                </p>
               </div>
             </div>
 
@@ -491,12 +580,13 @@ export default function ProfilePage() {
               <Clock size={16} className="text-text-secondary shrink-0" />
               <div>
                 <p className="text-xs text-text-secondary">Last Updated</p>
-                <p className="text-sm font-medium text-text">{updatedAtFormatted}</p>
+                <p className="text-sm font-medium text-text">
+                  {updatedAtFormatted}
+                </p>
               </div>
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );
