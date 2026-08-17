@@ -5,9 +5,34 @@ import { useEffect, useState } from "react";
 import type { DocumentationNode } from "@/data/documentationTree";
 import DocTreeNode from "./DocTreeNode";
 import { getPublicDocumentTree } from "@/app/services/documentService";
+import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
+
+const SKELETON_TREE_ITEMS = [
+  { level: 0, width: "70%", hasChevron: true },
+  { level: 1, width: "60%", hasChevron: false },
+  { level: 1, width: "65%", hasChevron: false },
+  { level: 1, width: "50%", hasChevron: false },
+  
+  
+  { level: 0, width: "75%", hasChevron: true },
+  { level: 1, width: "55%", hasChevron: true },
+  { level: 2, width: "45%", hasChevron: false },
+  { level: 2, width: "60%", hasChevron: false },
+  { level: 1, width: "68%", hasChevron: false },
+
+  
+  { level: 0, width: "80%", hasChevron: true },
+  { level: 1, width: "58%", hasChevron: false },
+  { level: 1, width: "62%", hasChevron: false },
+
+];
+
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [documents, setDocuments] = useState<DocumentationNode[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     const fetchDocuments = async () => {
       try {
@@ -15,11 +40,14 @@ export default function Sidebar() {
         setDocuments(documents);
       } catch (error) {
         console.error("Failed to fetch documentation:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchDocuments();
   }, []);
+
   return (
     <>
       {/* Mobile Toggle Button */}
@@ -47,15 +75,39 @@ export default function Sidebar() {
       >
         {/* Navigation Tree */}
         <nav className="flex-1 overflow-y-auto px-3 py-4">
-          <ul className="space-y-1">
-            {documents.map((node) => (
-              <DocTreeNode
-                key={node.id}
-                node={node}
-                onNavigate={() => setIsOpen(false)}
-              />
-            ))}
-          </ul>
+          {isLoading ? (
+            <SkeletonTheme baseColor="#1a1a1a" highlightColor="#2a2a2a">
+              <div className="space-y-1">
+                {SKELETON_TREE_ITEMS.map((item, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 h-8 px-2 rounded"
+                    style={{ paddingLeft: `${item.level * 16 + 8}px` }}
+                  >
+                    {item.hasChevron ? (
+                      <Skeleton circle width={12} height={12} />
+                    ) : (
+                      <span className="w-3 inline-block" />
+                    )}
+                    <Skeleton circle width={14} height={14} />
+                    <div className="flex-1">
+                      <Skeleton height={14} width={item.width} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </SkeletonTheme>
+          ) : (
+            <ul className="space-y-1">
+              {documents.map((node) => (
+                <DocTreeNode
+                  key={node.id}
+                  node={node}
+                  onNavigate={() => setIsOpen(false)}
+                />
+              ))}
+            </ul>
+          )}
         </nav>
       </aside>
     </>
