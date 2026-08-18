@@ -143,7 +143,10 @@ export default function ResetPasswordPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 {/* New Password */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-medium text-text">
+                  <label
+                    htmlFor="new-password"
+                    className="block text-xs font-medium text-text"
+                  >
                     New Password
                   </label>
                   <div className="relative flex items-center">
@@ -152,6 +155,7 @@ export default function ResetPasswordPage() {
                       className="absolute left-3 text-text-secondary shrink-0"
                     />
                     <input
+                      id="new-password"
                       type={showPassword ? "text" : "password"}
                       required
                       placeholder="••••••••"
@@ -165,7 +169,9 @@ export default function ResetPasswordPage() {
                       onClick={() => setShowPassword((prev) => !prev)}
                       className="absolute right-3 text-text-secondary hover:text-text transition-colors"
                       aria-label={
-                        showPassword ? "Hide password" : "Show password"
+                        showPassword
+                          ? "Hide new password"
+                          : "Show new password"
                       }
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -175,7 +181,10 @@ export default function ResetPasswordPage() {
 
                 {/* Confirm Password */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-medium text-text">
+                  <label
+                    htmlFor="confirm-password"
+                    className="block text-xs font-medium text-text"
+                  >
                     Confirm Password
                   </label>
                   <div className="relative flex items-center">
@@ -184,6 +193,7 @@ export default function ResetPasswordPage() {
                       className="absolute left-3 text-text-secondary shrink-0"
                     />
                     <input
+                      id="confirm-password"
                       type={showConfirmPassword ? "text" : "password"}
                       required
                       placeholder="••••••••"
@@ -197,7 +207,9 @@ export default function ResetPasswordPage() {
                       onClick={() => setShowConfirmPassword((prev) => !prev)}
                       className="absolute right-3 text-text-secondary hover:text-text transition-colors"
                       aria-label={
-                        showConfirmPassword ? "Hide password" : "Show password"
+                        showConfirmPassword
+                          ? "Hide confirm password"
+                          : "Show confirm password"
                       }
                     >
                       {showConfirmPassword ? (

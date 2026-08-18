@@ -13,6 +13,7 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError("");
 
     if (!email.trim()) {
       setError("Please enter your email address.");
@@ -25,7 +26,6 @@ export default function ForgotPasswordPage() {
       return;
     }
 
-    setError("");
     setIsLoading(true);
 
     try {
@@ -85,7 +85,6 @@ export default function ForgotPasswordPage() {
                 />
                 <input
                   type="email"
-                  required
                   placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}

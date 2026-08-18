@@ -8,6 +8,7 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { registerClient } from "../services/authService";
 import axios from "axios";
+
 export default function RegisterPage() {
   const router = useRouter();
   const [name, setName] = useState("");
@@ -109,7 +110,7 @@ export default function RegisterPage() {
               </div>
             )}
             <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-text">
+              <label htmlFor="fullName" className="block text-xs font-medium text-text">
                 Full Name
               </label>
               <div className="relative flex items-center">
@@ -118,6 +119,7 @@ export default function RegisterPage() {
                   className="absolute left-3 text-text-secondary shrink-0"
                 />
                 <input
+                  id="fullName"
                   type="text"
                   required
                   placeholder="Alex Rivera"
@@ -129,7 +131,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-text">
+              <label htmlFor="email" className="block text-xs font-medium text-text">
                 Email Address
               </label>
               <div className="relative flex items-center">
@@ -138,6 +140,7 @@ export default function RegisterPage() {
                   className="absolute left-3 text-text-secondary shrink-0"
                 />
                 <input
+                  id="email"
                   type="email"
                   required
                   placeholder="name@example.com"
@@ -149,7 +152,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-text">
+              <label htmlFor="password" className="block text-xs font-medium text-text">
                 Password
               </label>
               <div className="relative flex items-center">
@@ -158,6 +161,7 @@ export default function RegisterPage() {
                   className="absolute left-3 text-text-secondary shrink-0"
                 />
                 <input
+                  id="password"
                   type={showPassword ? "text" : "password"}
                   required
                   placeholder="••••••••"
@@ -177,7 +181,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-text">
+              <label htmlFor="confirmPassword" className="block text-xs font-medium text-text">
                 Confirm Password
               </label>
               <div className="relative flex items-center">
@@ -186,6 +190,7 @@ export default function RegisterPage() {
                   className="absolute left-3 text-text-secondary shrink-0"
                 />
                 <input
+                  id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   required
                   placeholder="••••••••"
