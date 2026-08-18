@@ -4,6 +4,10 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
+import { Table } from "@tiptap/extension-table";
+import { TableRow } from "@tiptap/extension-table-row";
+import { TableHeader } from "@tiptap/extension-table-header";
+import { TableCell } from "@tiptap/extension-table-cell";
 import {
   Bold,
   Italic,
@@ -20,6 +24,9 @@ import {
   Redo,
   Palette,
   RotateCcw,
+  Table as TableIcon,
+  Plus,
+  Trash2,
 } from "lucide-react";
 
 interface DocumentEditorProps {
@@ -27,7 +34,7 @@ interface DocumentEditorProps {
   initialContent?: object | null;
 }
 
-// 3-tier text color palette aligned with your layout styles
+// 3-tier text color palette aligned with layout styles
 const TEXT_COLORS = [
   { 
     name: "Title Color", 
@@ -49,6 +56,12 @@ export default function DocumentEditor({ onChange, initialContent }: DocumentEdi
       StarterKit,
       TextStyle,
       Color,
+      Table.configure({
+        resizable: true,
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
     ],
     immediatelyRender: false,
     content: initialContent || "",
@@ -136,6 +149,46 @@ export default function DocumentEditor({ onChange, initialContent }: DocumentEdi
           border-top: 1px solid var(--color-border, #1e293b);
           margin-top: 1rem;
           margin-bottom: 1rem;
+        }
+
+        /* Table Specific Styles */
+        .tiptap-editor table {
+          border-collapse: collapse;
+          table-layout: fixed;
+          width: 100%;
+          margin: 1rem 0;
+          overflow: hidden;
+        }
+        .tiptap-editor td,
+        .tiptap-editor th {
+          min-width: 1em;
+          border: 1px solid var(--color-border, #1e293b);
+          padding: 8px 10px;
+          vertical-align: top;
+          box-sizing: border-box;
+          position: relative;
+        }
+        .tiptap-editor th {
+          font-weight: 600;
+          text-align: left;
+          background-color: rgba(255, 255, 255, 0.05);
+        }
+        .tiptap-editor .selectedCell:after {
+          z-index: 2;
+          position: absolute;
+          content: "";
+          left: 0; right: 0; top: 0; bottom: 0;
+          background: rgba(99, 102, 241, 0.15);
+          pointer-events: none;
+        }
+        .tiptap-editor .column-resize-handle {
+          position: absolute;
+          right: -2px;
+          top: 0;
+          bottom: -2px;
+          width: 4px;
+          background-color: var(--color-primary, #6366f1);
+          pointer-events: none;
         }
       `}</style>
 
@@ -332,6 +385,79 @@ export default function DocumentEditor({ onChange, initialContent }: DocumentEdi
         >
           <Minus size={15} />
         </button>
+
+        <div className="w-px h-4 bg-border mx-1" />
+
+        {/* Insert Table */}
+        <button
+          type="button"
+          onClick={() =>
+            editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+          }
+          className={`p-1.5 rounded text-xs transition-colors ${
+            editor.isActive("table")
+              ? "bg-primary text-text"
+              : "text-text-secondary hover:text-text hover:bg-surface"
+          }`}
+          title="Insert Table (3x3)"
+        >
+          <TableIcon size={15} />
+        </button>
+
+        {/* Contextual Table Actions */}
+        {editor.isActive("table") && (
+          <div className="flex items-center gap-0.5 bg-surface p-0.5 rounded border border-border">
+            {/* Row Actions */}
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().addRowAfter().run()}
+              className="p-1 rounded text-text-secondary hover:text-text hover:bg-background transition-colors"
+              title="Add Row Below"
+            >
+              <Plus size={13} />
+            </button>
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().deleteRow().run()}
+              className="p-1 rounded text-text-secondary hover:text-red-400 hover:bg-background transition-colors"
+              title="Delete Current Row"
+            >
+              <Minus size={13} />
+            </button>
+
+            <div className="w-px h-3 bg-border mx-0.5" />
+
+            {/* Column Actions */}
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().addColumnAfter().run()}
+              className="p-1 rounded text-text-secondary hover:text-text hover:bg-background transition-colors"
+              title="Add Column Right"
+            >
+              <Plus size={13} className="rotate-90" />
+            </button>
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().deleteColumn().run()}
+              className="p-1 rounded text-text-secondary hover:text-red-400 hover:bg-background transition-colors"
+              title="Delete Current Column"
+            >
+              <Minus size={13} className="rotate-90" />
+            </button>
+
+            <div className="w-px h-3 bg-border mx-0.5" />
+
+            {/* Delete Entire Table */}
+            <button
+              type="button"
+              onClick={() => editor.chain().focus().deleteTable().run()}
+              className="p-1 rounded text-red-400 hover:text-red-300 hover:bg-background transition-colors"
+              title="Delete Entire Table"
+            >
+              <Trash2 size={13} />
+            </button>
+          </div>
+        )}
 
         <div className="w-px h-4 bg-border mx-1" />
 
