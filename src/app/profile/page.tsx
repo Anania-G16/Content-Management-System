@@ -147,51 +147,51 @@ export default function ProfilePage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  setTouched({
-    currentPassword: true,
-    newPassword: true,
-    confirmPassword: true,
-  });
+    setTouched({
+      currentPassword: true,
+      newPassword: true,
+      confirmPassword: true,
+    });
 
-  const validationErrors = validate(
-    currentPassword,
-    newPassword,
-    confirmPassword,
-  );
-
-  setErrors(validationErrors);
-
-  if (Object.keys(validationErrors).length > 0) {
-    return;
-  }
-
-  setIsChangingPassword(true);
-
-  try {
-    await changePassword({
+    const validationErrors = validate(
       currentPassword,
       newPassword,
       confirmPassword,
-    });
+    );
 
-    toast.success("Password changed successfully.");
-  } catch (error: unknown) {
-    console.error("Failed to change password:", error);
+    setErrors(validationErrors);
 
-    if (axios.isAxiosError(error)) {
-      toast.error(
-        error.response?.data?.message ||
-          "Failed to change password. Please try again.",
-      );
-    } else {
-      toast.error("Something went wrong. Please try again.");
+    if (Object.keys(validationErrors).length > 0) {
+      return;
     }
-  } finally {
-    setIsChangingPassword(false);
-  }
-};
+
+    setIsChangingPassword(true);
+
+    try {
+      await changePassword({
+        currentPassword,
+        newPassword,
+        confirmPassword,
+      });
+
+      toast.success("Password changed successfully.");
+    } catch (error: unknown) {
+      console.error("Failed to change password:", error);
+
+      if (axios.isAxiosError(error)) {
+        toast.error(
+          error.response?.data?.message ||
+            "Failed to change password. Please try again.",
+        );
+      } else {
+        toast.error("Something went wrong. Please try again.");
+      }
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
 
   const handleSavePersonalInfo = () => {
     // Client-only handler placeholder without endpoint invocation
@@ -554,38 +554,6 @@ export default function ProfilePage() {
               Update Password
             </button>
           </form>
-        </div>
-
-        {/* Account Information Section */}
-        <div className="bg-surface border border-border rounded-lg p-6 shadow-sm space-y-4">
-          <div className="border-b border-border pb-3">
-            <h2 className="text-base font-semibold text-text flex items-center gap-2">
-              <Calendar size={18} className="text-primary" />
-              <span>Account Information</span>
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-            <div className="flex items-center gap-3 p-3 rounded-md bg-background/50 border border-border/60">
-              <Calendar size={16} className="text-text-secondary shrink-0" />
-              <div>
-                <p className="text-xs text-text-secondary">Account Created</p>
-                <p className="text-sm font-medium text-text">
-                  {createdAtFormatted}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 rounded-md bg-background/50 border border-border/60">
-              <Clock size={16} className="text-text-secondary shrink-0" />
-              <div>
-                <p className="text-xs text-text-secondary">Last Updated</p>
-                <p className="text-sm font-medium text-text">
-                  {updatedAtFormatted}
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
