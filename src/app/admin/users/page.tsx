@@ -5,6 +5,7 @@ import {
   getClients,
   updateUserStatus,
   deleteUser,
+  promoteUserToAdmin,
 } from "@/app/services/userService";
 import {
   Search,
@@ -54,8 +55,43 @@ export default function UsersPage() {
       user.email.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  const toggleMenu = (userId: string) => {
-    setActiveMenuId(activeMenuId === userId ? null : userId);
+  const toggleMenu = (
+    userId: string,
+    event: React.MouseEvent<HTMLButtonElement>,
+  ) => {
+    if (activeMenuId === userId) {
+      setActiveMenuId(null);
+      setMenuPosition(null);
+      return;
+    }
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const openUpward = spaceBelow < 180;
+
+    setMenuPosition({
+      top: openUpward ? rect.top - 140 : rect.bottom + 8,
+      right: window.innerWidth - rect.right,
+      openUpward,
+    });
+    setActiveMenuId(userId);
+  };
+
+  const handlePromoteToAdmin = async (userId: string) => {
+    try {
+      await promoteUserToAdmin(userId);
+
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.id === userId ? { ...user, role: "Admin" } : user,
+        ),
+      );
+
+      setActiveMenuId(null);
+      setMenuPosition(null);
+    } catch (error) {
+      console.error("Failed to promote user to admin:", error);
+    }
   };
 
   const handleToggleDeactivate = async (userId: string) => {
@@ -81,7 +117,7 @@ export default function UsersPage() {
     }
   };
 
-  //Delete
+  // Delete
   const handleConfirmDelete = async () => {
     if (!userToDelete) return;
 
@@ -97,6 +133,7 @@ export default function UsersPage() {
       console.error("Failed to delete user:", error);
     }
   };
+
   const getRoleBadge = (role: UserRole) => {
     if (role === "Admin") {
       return (
@@ -212,23 +249,43 @@ export default function UsersPage() {
                     </td>
 
                     {/* Action Menu */}
-                    <td className="py-3.5 px-4 text-right relative">
+                    <td className="py-3.5 px-4 text-right">
                       <button
-                        onClick={() => toggleMenu(user.id)}
+                        onClick={(e) => toggleMenu(user.id, e)}
                         className="p-1.5 rounded-lg text-text-secondary hover:text-text hover:bg-white/6 transition-colors"
                         aria-label="Actions"
                       >
                         <MoreVertical size={16} />
                       </button>
 
-                      {/* Dropdown Menu */}
-                      {activeMenuId === user.id && (
+                      {/* Fixed Positioned Dropdown Menu */}
+                      {activeMenuId === user.id && menuPosition && (
                         <>
                           <div
-                            className="fixed inset-0 z-10"
-                            onClick={() => setActiveMenuId(null)}
+                            className="fixed inset-0 z-40"
+                            onClick={() => {
+                              setActiveMenuId(null);
+                              setMenuPosition(null);
+                            }}
                           />
-                          <div className="absolute right-4 top-12 z-20 w-48 rounded-lg bg-[#222222] border border-white/1 shadow-xl py-1 text-left">
+                          <div
+                            style={{
+                              top: `${menuPosition.top}px`,
+                              right: `${menuPosition.right}px`,
+                            }}
+                            className="fixed z-50 w-48 rounded-lg bg-[#222222] border border-white/1 shadow-xl py-1 text-left animate-in fade-in zoom-in-95 duration-150"
+                          >
+                            {/* Promote to Admin Option */}
+                            {user.role !== "Admin" && (
+                              <button
+                                onClick={() => handlePromoteToAdmin(user.id)}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-purple-400 hover:bg-purple-500/10 transition-colors"
+                              >
+                                <ShieldCheck size={14} />
+                                Promote to Admin
+                              </button>
+                            )}
+
                             {/* Deactivate / Reactivate Option */}
                             <button
                               onClick={() => handleToggleDeactivate(user.id)}
@@ -254,6 +311,7 @@ export default function UsersPage() {
                               onClick={() => {
                                 setUserToDelete(user);
                                 setActiveMenuId(null);
+                                setMenuPosition(null);
                               }}
                               className="w-full flex items-center gap-2 px-3 py-2 text-xs text-rose-400 hover:bg-rose-500/10 transition-colors"
                             >

@@ -47,3 +47,9 @@ export async function deleteUser(id: string) {
 
   return response.data;
 }
+
+export async function promoteUserToAdmin(id: string) {
+  const response = await api.patch(`/api/users/${id}/promote`);
+
+  return response.data;
+}
