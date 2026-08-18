@@ -1,0 +1,252 @@
+"use client";
+import { useEffect, useState } from "react";
+import { getAdminDocumentTree } from "@/app/services/documentService";
+import { DocumentationNode } from "@/data/documentationTree";
+import Spinner from "@/components/Spinner";
+import Link from "next/link";
+import {
+  Plus,
+  FileText,
+  CheckCircle2,
+  FileEdit,
+  Edit,
+  Eye,
+} from "lucide-react";
+
+function countDocuments(nodes: DocumentationNode[]): number {
+  return nodes.reduce((count, node) => {
+    return count + 1 + countDocuments(node.children ?? []);
+  }, 0);
+}
+
+function countPublishedDocuments(nodes: DocumentationNode[]): number {
+  return nodes.reduce((count, node) => {
+    return (
+      count +
+      (node.status === "PUBLISHED" ? 1 : 0) +
+      countPublishedDocuments(node.children ?? [])
+    );
+  }, 0);
+}
+
+function countDraftDocuments(nodes: DocumentationNode[]): number {
+  return nodes.reduce((count, node) => {
+    return (
+      count +
+      (node.status === "DRAFT" ? 1 : 0) +
+      countDraftDocuments(node.children ?? [])
+    );
+  }, 0);
+}
+
+function formatUpdatedAt(updatedAt?: string): string {
+  if (!updatedAt) return "—";
+
+  const date = new Date(updatedAt);
+  const now = new Date();
+
+  const diffInMs = now.getTime() - date.getTime();
+  const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+  if (diffInDays === 0) return "Today";
+  if (diffInDays === 1) return "Yesterday";
+
+  return date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+export default function AdminDashboardPage() {
+  const [documents, setDocuments] = useState<DocumentationNode[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const data = await getAdminDocumentTree();
+        setDocuments(data);
+      } catch (error) {
+        console.error("Failed to fetch documents:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDocuments();
+  }, []);
+
+  const totalDocuments = countDocuments(documents);
+  const totalPublishedDocuments = countPublishedDocuments(documents);
+  const totalDraftDocuments = countDraftDocuments(documents);
+
+  const stats = [
+    {
+      title: "Total Documents",
+      value: totalDocuments.toString(),
+      icon: FileText,
+      color: "text-primary",
+    },
+    {
+      title: "Published",
+      value: totalPublishedDocuments.toString(),
+      icon: CheckCircle2,
+      color: "text-success",
+    },
+    {
+      title: "Drafts",
+      value: totalDraftDocuments.toString(),
+      icon: FileEdit,
+      color: "text-accent",
+    },
+  ];
+
+  return (
+    <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 space-y-8">
+      {/* Header & Quick Action */}
+      <div className="flex items-center justify-between gap-4 border-b border-border pb-6">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-text">
+            Admin Dashboard
+          </h1>
+          <p className="text-sm text-text-secondary mt-1">
+            Manage and publish company documentation.
+          </p>
+        </div>
+
+        <Link
+          href="/admin/docs/new"
+          className="inline-flex items-center justify-center p-2.5 rounded-md bg-primary text-black hover:bg-primary/90 transition-colors shrink-0"
+          aria-label="New Document"
+          title="New Document"
+        >
+          <Plus size={18} className="stroke-[2.5]" />
+        </Link>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {stats.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <div
+              key={stat.title}
+              className="p-5 rounded-md bg-surface border border-border flex items-center justify-between"
+            >
+              <div>
+                <span className="text-xs font-semibold text-text-secondary uppercase tracking-wider block mb-1">
+                  {stat.title}
+                </span>
+                {isLoading ? (
+                  <div className="h-9 w-12 rounded-md bg-text-secondary/20 animate-pulse" />
+                ) : (
+                  <span className="text-3xl font-bold text-text">
+                    {stat.value}
+                  </span>
+                )}
+              </div>
+              <div
+                className={`p-3 rounded-md bg-background border border-border ${stat.color}`}
+              >
+                <Icon size={20} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Main Document Table */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-text flex items-center gap-2">
+            <FileText size={18} className="text-primary" />
+            <span>Top-Level Documents ({documents.length})</span>
+          </h2>
+        </div>
+
+        <div className="rounded-md bg-surface border border-border overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm text-text-secondary">
+              <thead className="bg-background border-b border-border text-xs uppercase text-text-secondary">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Title</th>
+                  <th className="px-4 py-3 font-semibold">Status</th>
+                  <th className="px-4 py-3 font-semibold">Last Updated</th>
+                  <th className="px-4 py-3 font-semibold text-right">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-border">
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={4}>
+                      <div className="flex items-center justify-center py-12">
+                        <Spinner size="md" />
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  documents.map((doc) => (
+                    <tr
+                      key={doc.id}
+                      className="hover:bg-background/50 transition-colors"
+                    >
+                      <td className="px-4 py-3">
+                        <div className="font-medium text-text">{doc.title}</div>
+                        <div className="text-xs text-text-secondary font-mono">
+                          /docs/{doc.slug}
+                        </div>
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
+                            doc.status === "PUBLISHED"
+                              ? "bg-success/10 text-success"
+                              : "bg-text-secondary/10 text-text-secondary"
+                          }`}
+                        >
+                          {doc.status}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-3 text-xs">
+                        {formatUpdatedAt(doc.updatedAt)}
+                      </td>
+
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-3">
+                          <Link
+                            href={`/docs/${doc.slug}`}
+                            target="_blank"
+                            className="text-text-secondary hover:text-text transition-colors flex items-center gap-1 text-xs"
+                            title="View on site"
+                          >
+                            <Eye size={14} />
+                            <span>View</span>
+                          </Link>
+
+                          <Link
+                            href={`/admin/docs/${doc.id}/edit`}
+                            className="text-primary hover:text-primary-text transition-colors flex items-center gap-1 text-xs font-medium"
+                            title="Edit document"
+                          >
+                            <Edit size={14} />
+                            <span>Edit</span>
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
