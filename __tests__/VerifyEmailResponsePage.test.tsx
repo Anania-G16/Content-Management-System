@@ -1,6 +1,6 @@
 import React from "react";
 import { render, waitFor } from "@testing-library/react";
-import VerifyEmailPage from "@/app/verify-email/page"; // Adjust import path to your page file
+import VerifyEmailPage from "@/app/verify-email/VerifyEmailClient"; // Adjust import path to your page file
 import api from "@/lib/api";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -62,7 +62,9 @@ describe("VerifyEmailPage Component", () => {
     (api.post as jest.Mock).mockRejectedValueOnce(new Error("Network error"));
 
     // Suppress console.error during the expected failure test
-    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const consoleSpy = jest
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
 
     render(<VerifyEmailPage />);
 
