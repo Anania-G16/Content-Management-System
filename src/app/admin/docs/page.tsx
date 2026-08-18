@@ -7,7 +7,10 @@ import DocumentTree from "@/components/DocumentTree";
 import Spinner from "@/components/Spinner";
 import { DocumentationNode } from "@/data/documentationTree";
 import api from "@/lib/api";
-import { getAdminDocumentTree, deleteDocument } from "@/app/services/documentService";
+import {
+  getAdminDocumentTree,
+  deleteDocument,
+} from "@/app/services/documentService";
 
 export default function AdminDocsPage() {
   const [isLoading, setIsLoading] = useState(true);
@@ -74,7 +77,7 @@ export default function AdminDocsPage() {
   return (
     <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 space-y-6">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
+      <div className="flex items-center justify-between gap-4 border-b border-border pb-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-text">
             Documentation
@@ -86,10 +89,11 @@ export default function AdminDocsPage() {
 
         <Link
           href="/admin/docs/new"
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-text text-sm font-medium hover:bg-primary-active transition-colors self-start sm:self-auto"
+          className="inline-flex items-center justify-center p-2.5 rounded-md bg-primary text-black hover:bg-primary/90 transition-colors shrink-0"
+          aria-label="New Document"
+          title="New Document"
         >
-          <Plus size={16} />
-          <span>New Document</span>
+          <Plus size={18} className="stroke-[2.5]" />
         </Link>
       </div>
 
@@ -154,13 +158,13 @@ export default function AdminDocsPage() {
                   No documentation yet
                 </h3>
                 <p className="text-sm text-text-secondary max-w-sm mx-auto">
-                  Create your first document to start building your documentation
-                  tree.
+                  Create your first document to start building your
+                  documentation tree.
                 </p>
               </div>
               <Link
                 href="/admin/docs/new"
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-primary text-text text-sm font-medium hover:bg-primary-active transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-primary text-black text-sm font-medium hover:bg-primary/90 transition-colors"
               >
                 <Plus size={16} />
                 <span>Create First Document</span>

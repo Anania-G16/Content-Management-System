@@ -13,51 +13,6 @@ import {
   Eye,
 } from "lucide-react";
 
-const stats = [
-  {
-    title: "Total Documents",
-    value: "24",
-    icon: FileText,
-    color: "text-primary",
-  },
-  {
-    title: "Published",
-    value: "18",
-    icon: CheckCircle2,
-    color: "text-success",
-  },
-  {
-    title: "Drafts",
-    value: "6",
-    icon: FileEdit,
-    color: "text-accent",
-  },
-];
-
-const documents = [
-  {
-    id: "1",
-    title: "Getting Started",
-    slug: "getting-started",
-    status: "Published",
-    updatedAt: "Today",
-  },
-  {
-    id: "2",
-    title: "Installation Guide",
-    slug: "installation",
-    status: "Published",
-    updatedAt: "Yesterday",
-  },
-  {
-    id: "3",
-    title: "Company Policies",
-    slug: "company-policies",
-    status: "Draft",
-    updatedAt: "3 days ago",
-  },
-];
-
 function countDocuments(nodes: DocumentationNode[]): number {
   return nodes.reduce((count, node) => {
     return count + 1 + countDocuments(node.children ?? []);
@@ -73,6 +28,7 @@ function countPublishedDocuments(nodes: DocumentationNode[]): number {
     );
   }, 0);
 }
+
 function countDraftDocuments(nodes: DocumentationNode[]): number {
   return nodes.reduce((count, node) => {
     return (
@@ -105,6 +61,7 @@ function formatUpdatedAt(updatedAt?: string): string {
 export default function AdminDashboardPage() {
   const [documents, setDocuments] = useState<DocumentationNode[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     const fetchDocuments = async () => {
       try {
@@ -119,6 +76,7 @@ export default function AdminDashboardPage() {
 
     fetchDocuments();
   }, []);
+
   const totalDocuments = countDocuments(documents);
   const totalPublishedDocuments = countPublishedDocuments(documents);
   const totalDraftDocuments = countDraftDocuments(documents);
@@ -143,10 +101,11 @@ export default function AdminDashboardPage() {
       color: "text-accent",
     },
   ];
+
   return (
     <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 space-y-8">
       {/* Header & Quick Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
+      <div className="flex items-center justify-between gap-4 border-b border-border pb-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-text">
             Admin Dashboard
@@ -158,10 +117,11 @@ export default function AdminDashboardPage() {
 
         <Link
           href="/admin/docs/new"
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-text text-sm font-medium hover:bg-primary-active transition-colors self-start sm:self-auto"
+          className="inline-flex items-center justify-center p-2.5 rounded-md bg-primary text-black hover:bg-primary/90 transition-colors shrink-0"
+          aria-label="New Document"
+          title="New Document"
         >
-          <Plus size={16} />
-          <span>New Document</span>
+          <Plus size={18} className="stroke-[2.5]" />
         </Link>
       </div>
 
