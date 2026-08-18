@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import ResetPasswordPage from "@/app/reset-password/page";
+import ResetPasswordPage from "@/app/reset-password/ResetPasswordClient";
 import { useSearchParams } from "next/navigation";
 import { resetPassword } from "@/app/services/authService";
 
